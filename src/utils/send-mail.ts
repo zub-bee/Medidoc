@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import env from "../configs/env";
 import { resend } from "../configs/resend";
+import transporter from "../configs/nodemailer";
 import { renderEmailTemplates } from "./render-email-template";
 
 export type SendMailType = {
@@ -23,17 +24,35 @@ export async function sendEmail({
   const htmlContent =
     (await renderEmailTemplates(templateName, data)) || html || "";
 
-  const response = await resend.emails.send({
-    from: from || env.EMAIL_FROM,
-    to: email,
-    subject,
-    replyTo: email,
-    html: htmlContent
-  });
+  if (process.env.NODE_ENV == "development") {
+    try {
+      const info = await transporter.sendMail({
+        from: from || env.EMAIL_FROM,
+        to: email,
+        subject,
+        replyTo: email,
+        html: htmlContent
+      });
 
-  if (response.error) {
-    throw new Error(response.error.message || "Failed to send email");
+      return info.response;
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new Error(err.message || "Failed to send email");
+      }
+    }
+  } else {
+    const response = await resend.emails.send({
+      from: from || env.EMAIL_FROM,
+      to: email,
+      subject,
+      replyTo: email,
+      html: htmlContent
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message || "Failed to send email");
+    }
+
+    return response.data;
   }
-
-  return response.data;
 }
