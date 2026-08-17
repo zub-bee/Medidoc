@@ -26,18 +26,24 @@ const applyTestEnv = () => {
   process.env.FACEBOOK_APP_SECRET = "facebook-secret";
   process.env.FACEBOOK_REDIRECT_URI = "https://example.com/facebook/callback";
   process.env.REDIS_URL = "redis://localhost:6379";
+  process.env.GMAIL_APP_PASSWORD = "16characterpassword";
+  process.env.GMAIL_USER = "user@gmail.com";
 };
 
 test("registerUser cleans up pending signup state when redis persistence fails", async t => {
   applyTestEnv();
 
-  const [{ AuthService }, { OtpService }, { default: db }, { default: redisClient }] =
-    await Promise.all([
-      import("./auth.service.ts"),
-      import("./otp.service.ts"),
-      import("../configs/db.ts"),
-      import("../configs/redis.ts")
-    ]);
+  const [
+    { AuthService },
+    { OtpService },
+    { default: db },
+    { default: redisClient }
+  ] = await Promise.all([
+    import("./auth.service.ts"),
+    import("./otp.service.ts"),
+    import("../configs/db.ts"),
+    import("../configs/redis.ts")
+  ]);
 
   const email = "test@example.com";
   const delCalls: string[] = [];
@@ -86,15 +92,24 @@ test("registerUser cleans up pending signup state when redis persistence fails",
 
 test("refreshTokens validates the session refreshTokenHash and rotates via a watched redis transaction", async () => {
   const { readFile } = await import("node:fs/promises");
-  const source = await readFile(new URL("./auth.service.ts", import.meta.url), "utf8");
+  const source = await readFile(
+    new URL("./auth.service.ts", import.meta.url),
+    "utf8"
+  );
 
-  assert.match(source, /await redisClient\.watch\(refreshTokenKey, sessionKey\);/);
+  assert.match(
+    source,
+    /await redisClient\.watch\(refreshTokenKey, sessionKey\);/
+  );
   assert.match(
     source,
     /storedSessionData\.refreshTokenHash !== refreshTokenHash/
   );
   assert.match(source, /const transaction = redisClient\.multi\(\);/);
-  assert.match(source, /const transactionResult = await transaction\.exec\(\);/);
+  assert.match(
+    source,
+    /const transactionResult = await transaction\.exec\(\);/
+  );
   assert.match(
     source,
     /if \(!transactionResult\) {\s*throw ApiError\.unauthorized\("Refresh token already rotated\."\);/
@@ -103,7 +118,10 @@ test("refreshTokens validates the session refreshTokenHash and rotates via a wat
 
 test("resetPassword and changePassword throw ApiError instead of calling next(ApiError)", async () => {
   const { readFile } = await import("node:fs/promises");
-  const source = await readFile(new URL("./auth.service.ts", import.meta.url), "utf8");
+  const source = await readFile(
+    new URL("./auth.service.ts", import.meta.url),
+    "utf8"
+  );
 
   assert.doesNotMatch(
     source,
@@ -113,8 +131,17 @@ test("resetPassword and changePassword throw ApiError instead of calling next(Ap
 
 test("requestDeleteAccount never logs the raw delete-account token", async () => {
   const { readFile } = await import("node:fs/promises");
-  const source = await readFile(new URL("./auth.service.ts", import.meta.url), "utf8");
+  const source = await readFile(
+    new URL("./auth.service.ts", import.meta.url),
+    "utf8"
+  );
 
-  assert.match(source, /logger\.info\(\{ userId \}, "Delete account email queued"\)/);
-  assert.doesNotMatch(source, /logger\.warn\(`Delete account token: \$\{token\}`\)/);
+  assert.match(
+    source,
+    /logger\.info\(\{ userId \}, "Delete account email queued"\)/
+  );
+  assert.doesNotMatch(
+    source,
+    /logger\.warn\(`Delete account token: \$\{token\}`\)/
+  );
 });

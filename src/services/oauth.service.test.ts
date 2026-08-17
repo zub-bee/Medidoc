@@ -26,6 +26,8 @@ const applyTestEnv = () => {
   process.env.FACEBOOK_APP_SECRET = "facebook-secret";
   process.env.FACEBOOK_REDIRECT_URI = "https://example.com/facebook/callback";
   process.env.REDIS_URL = "redis://localhost:6379";
+  process.env.GMAIL_APP_PASSWORD = "16characterpassword";
+  process.env.GMAIL_USER = "user@gmail.com";
 };
 
 const createReturningChain = <T>(result: T) => ({
@@ -37,11 +39,12 @@ const createReturningChain = <T>(result: T) => ({
 test("oauth service auto-links verified users", async t => {
   applyTestEnv();
 
-  const [{ OAuthService }, { AuthService }, { default: db }] = await Promise.all([
-    import("./oauth.service.ts"),
-    import("./auth.service.ts"),
-    import("../configs/db.ts")
-  ]);
+  const [{ OAuthService }, { AuthService }, { default: db }] =
+    await Promise.all([
+      import("./oauth.service.ts"),
+      import("./auth.service.ts"),
+      import("../configs/db.ts")
+    ]);
 
   const existingUser = {
     id: "user-1",
@@ -58,9 +61,14 @@ test("oauth service auto-links verified users", async t => {
   };
 
   t.mock.method(db.query.users, "findFirst", async () => existingUser as never);
-  const updateMock = t.mock.method(db, "update", () => ({
-    set: () => createReturningChain(updatedUser)
-  }) as never);
+  const updateMock = t.mock.method(
+    db,
+    "update",
+    () =>
+      ({
+        set: () => createReturningChain(updatedUser)
+      }) as never
+  );
   const insertMock = t.mock.method(db, "insert", () => {
     throw new Error("insert should not be called");
   });
@@ -93,11 +101,12 @@ test("oauth service auto-links verified users", async t => {
 test("oauth service allows same-provider linking even when the incoming email is unverified", async t => {
   applyTestEnv();
 
-  const [{ OAuthService }, { AuthService }, { default: db }] = await Promise.all([
-    import("./oauth.service.ts"),
-    import("./auth.service.ts"),
-    import("../configs/db.ts")
-  ]);
+  const [{ OAuthService }, { AuthService }, { default: db }] =
+    await Promise.all([
+      import("./oauth.service.ts"),
+      import("./auth.service.ts"),
+      import("../configs/db.ts")
+    ]);
 
   const existingUser = {
     id: "user-2",
@@ -112,9 +121,14 @@ test("oauth service allows same-provider linking even when the incoming email is
   };
 
   t.mock.method(db.query.users, "findFirst", async () => existingUser as never);
-  const updateMock = t.mock.method(db, "update", () => ({
-    set: () => createReturningChain(updatedUser)
-  }) as never);
+  const updateMock = t.mock.method(
+    db,
+    "update",
+    () =>
+      ({
+        set: () => createReturningChain(updatedUser)
+      }) as never
+  );
   const insertMock = t.mock.method(db, "insert", () => {
     throw new Error("insert should not be called");
   });
