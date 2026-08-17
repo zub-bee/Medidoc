@@ -2,11 +2,11 @@ import swaggerAutoGen from "swagger-autogen";
 
 const doc = {
   info: {
-    title: "Hybrid Auth API",
-    description: "Hybrid Auth API",
+    title: "Medidoc API",
+    description: "Medidoc API",
     version: "1.0.0"
   },
-  host: "localhost:9000/api",
+  host: "localhost:3000/api",
   schemes: ["http"]
 };
 
