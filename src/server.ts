@@ -11,7 +11,7 @@ redisClient
   .then(() => {
     logger.info("Redis Connection Success");
     const server = app.listen(port, () => {
-      logger.info("Hybrid Auth API started successfully");
+      logger.info("Medidoc API started successfully");
       logger.info(`URL          : http://localhost:${port}`);
       logger.info(`Environment  : ${env.NODE_ENV}`);
       logger.info(
