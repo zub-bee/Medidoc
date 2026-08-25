@@ -8,11 +8,15 @@ export const invoices = pgTable("invoices", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  patientId: text("patient_id").references(() => patients.id),
-  organizationId: text("organization_id").references(() => providers.id),
+  patientId: text("patient_id")
+    .references(() => patients.id)
+    .notNull(),
+  organizationId: text("organization_id")
+    .references(() => providers.id)
+    .notNull(),
   appointmentId: text("appointment_id").references(() => appointments.id),
-  amount: decimal("amount", { precision: 10, scale: 2 }),
-  status: text("status", { enum: ["pending", "paid", "overdue"] }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status", { enum: ["pending", "paid", "overdue"] }).notNull(),
   insuranceProvider: text("insurance_provider"),
   insurancePolicyNumber: text("insurance_policy_number"),
   serviceCode: text("service_code"),

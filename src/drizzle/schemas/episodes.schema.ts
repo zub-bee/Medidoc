@@ -7,10 +7,14 @@ export const episodes = pgTable("episodes", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  patientId: text("patient_id").references(() => patients.id),
-  organizationId: text("organization_id").references(() => providers.id),
+  patientId: text("patient_id")
+    .references(() => patients.id)
+    .notNull(),
+  organizationId: text("organization_id")
+    .references(() => providers.id)
+    .notNull(),
   label: text("label"),
-  status: text("status", { enum: ["open", "closed"] }),
+  status: text("status", { enum: ["open", "closed"] }).notNull(),
   openedAt: timestamp("opened_at"),
   closedAt: timestamp("closed_at")
 });

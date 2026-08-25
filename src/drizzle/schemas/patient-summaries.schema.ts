@@ -7,7 +7,9 @@ export const patient_summaries = pgTable("patient_summaries", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  patientId: text("patient_id").references(() => patients.id),
+  patientId: text("patient_id")
+    .references(() => patients.id)
+    .notNull(),
   episodeId: text("episode_id").references(() => episodes.id),
   category: text("category", {
     enum: [
@@ -21,8 +23,8 @@ export const patient_summaries = pgTable("patient_summaries", {
       "social_situation",
       "care_plan"
     ]
-  }),
-  data: json("data"),
+  }).notNull(),
+  data: json("data").notNull(),
   versionNo: integer("version_no"),
   updatedBy: text("updated_by"),
   updatedAt: timestamp("updated_at")

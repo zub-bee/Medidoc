@@ -3,7 +3,6 @@ CREATE TABLE "users" (
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text,
-	"role" text NOT NULL,
 	"is_email_verified" boolean DEFAULT false NOT NULL,
 	"last_login_at" timestamp,
 	"failed_login_attempts" integer DEFAULT 0 NOT NULL,

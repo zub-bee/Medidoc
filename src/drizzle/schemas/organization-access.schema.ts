@@ -7,9 +7,13 @@ export const organization_access = pgTable("organization_access", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  patientId: text("patient_id").references(() => patients.id),
-  organizationId: text("organization_id").references(() => providers.id),
-  status: text("status", { enum: ["active", "revoked"] }),
+  patientId: text("patient_id")
+    .references(() => patients.id)
+    .notNull(),
+  organizationId: text("organization_id")
+    .references(() => providers.id)
+    .notNull(),
+  status: text("status", { enum: ["active", "revoked"] }).notNull(),
   grantedAt: timestamp("granted_at"),
   revokedAt: timestamp("revoked_at")
 });

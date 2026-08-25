@@ -8,7 +8,7 @@ info:
     use the refresh endpoint to get a new one.
 
 servers:
-  - url: http://localhost:4000/api/v1
+  - url: http://localhost:4000
 
 security:
   - bearerAuth: []
@@ -21,8 +21,8 @@ components:
       bearerFormat: JWT
 
   parameters:
-    patientId:
-      name: patientId
+    patient_id:
+      name: patient_id
       in: path
       required: true
       schema: { type: string, format: uuid }
@@ -40,14 +40,15 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        full_name: { type: string }
-        dob: { type: string, format: date }
-        gender: { type: string }
-        address: { type: string }
-        phone: { type: string }
-        nin: { type: string }
+        name: { type: string }
         email: { type: string, format: email }
+        dob: { type: string, format: date, nullable: false }
+        phone: { type: string, nullable: false }
+        gender: { type: string, enum: [female, male], nullable: false }
+        address: { type: string, nullable: true }
+        nin: { type: string, nullable: false }
         created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     ProviderOrganization:
       type: object
@@ -57,25 +58,40 @@ components:
         cac_number: { type: string }
         status: { type: string, enum: [pending, verified, suspended] }
         verified_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     Practitioner:
       type: object
       properties:
         id: { type: string, format: uuid }
         organization_id: { type: string, format: uuid }
-        full_name: { type: string }
+        name: { type: string }
         email: { type: string, format: email }
-        approved_by: { type: string, format: uuid }
-        status: { type: string, enum: [pending, active, revoked] }
+        approved_by: { type: string, format: uuid, nullable: false }
+        status: { type: string, enum: [pending, active, revoked], nullable: false }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     Admin:
       type: object
       properties:
         id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
-        full_name: { type: string }
+        organization_id: { type: string, format: uuid, nullable: false }
+        name: { type: string }
         email: { type: string, format: email }
-        status: { type: string, enum: [pending, active, revoked] }
+        status: { type: string, nullable: false }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PlatformAdmin:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     AuthTokens:
       type: object
@@ -88,118 +104,137 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
-        status: { type: string, enum: [active, revoked] }
-        granted_at: { type: string, format: date-time }
+        patient_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
+        status: { type: string, enum: [active, revoked], nullable: false }
+        granted_at: { type: string, format: date-time, nullable: true }
         revoked_at: { type: string, format: date-time, nullable: true }
 
     PractitionerAccess:
       type: object
       properties:
         id: { type: string, format: uuid }
-        practitioner_id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        granted_by: { type: string, format: uuid }
-        status: { type: string, enum: [active, revoked] }
+        practitioner_id: { type: string, format: uuid, nullable: false }
+        patient_id: { type: string, format: uuid, nullable: false }
+        granted_by: { type: string, format: uuid, nullable: false }
+        status: { type: string, enum: [active, revoked], nullable: false }
+        granted_at: { type: string, format: date-time, nullable: true }
+        revoked_at: { type: string, format: date-time, nullable: true }
 
     Episode:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
-        label: { type: string }
-        status: { type: string, enum: [open, closed] }
-        opened_at: { type: string, format: date-time }
+        patient_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
+        label: { type: string, nullable: true }
+        status: { type: string, enum: [open, closed], nullable: false }
+        opened_at: { type: string, format: date-time, nullable: true }
         closed_at: { type: string, format: date-time, nullable: true }
 
     PatientSummary:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid, nullable: false }
         episode_id: { type: string, format: uuid, nullable: true }
         category:
           type: string
           enum: [problem_list, medications, allergies, vaccinations, preferences, lifestyle, family_history, social_situation, care_plan]
-        data: { type: object }
-        version_no: { type: integer }
-        updated_by: { type: string, format: uuid }
+          nullable: true
+        data: { type: object, nullable: false }
+        version_no: { type: integer, nullable: true }
+        updated_by: { type: string, format: uuid, nullable: true }
         updated_at: { type: string, format: date-time }
 
     ClinicalEntry:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        practitioner_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid, nullable: false }
+        practitioner_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
         episode_id: { type: string, format: uuid, nullable: true }
         event_type:
           type: string
-          enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note]
-        data: { type: object }
-        occurred_at: { type: string, format: date-time }
+          enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note, note]
+          nullable: false
+        data: { type: object, nullable: false }
+        occurred_at: { type: string, format: date-time, nullable: false }
         recorded_at: { type: string, format: date-time }
 
     Appointment:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
-        practitioner_id: { type: string, format: uuid, nullable: true }
-        scheduled_at: { type: string, format: date-time }
-        status: { type: string, enum: [scheduled, checked_in, completed, cancelled] }
+        patient_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
+        practitioner_id: { type: string, format: uuid, nullable: false }
+        scheduled_at: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [scheduled, checked_in, completed, cancelled], nullable: false }
         checked_in_by: { type: string, format: uuid, nullable: true }
         checked_in_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     Invoice:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
         appointment_id: { type: string, format: uuid, nullable: true }
-        amount: { type: number, format: decimal }
-        status: { type: string, enum: [pending, paid, overdue] }
+        amount: { type: number, format: decimal, nullable: false }
+        status: { type: string, enum: [pending, paid, overdue], nullable: false }
         insurance_provider: { type: string, nullable: true }
         insurance_policy_number: { type: string, nullable: true }
         service_code: { type: string, nullable: true }
-        created_by: { type: string, format: uuid }
+        created_by: { type: string, format: uuid, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     Payment:
       type: object
       properties:
         id: { type: string, format: uuid }
-        invoice_id: { type: string, format: uuid }
-        amount: { type: number, format: decimal }
-        method: { type: string, enum: [cash, card, transfer, insurance] }
-        recorded_by: { type: string, format: uuid }
-        paid_at: { type: string, format: date-time }
+        invoice_id: { type: string, format: uuid, nullable: true }
+        amount: { type: number, format: decimal, nullable: false }
+        method: { type: string, enum: [cash, card, transfer, insurance], nullable: false }
+        recorded_by: { type: string, format: uuid, nullable: false }
+        paid_at: { type: string, format: date-time, nullable: false }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     ConsentForm:
       type: object
       properties:
         id: { type: string, format: uuid }
-        patient_id: { type: string, format: uuid }
-        practitioner_id: { type: string, format: uuid }
-        organization_id: { type: string, format: uuid }
-        procedure_name: { type: string }
-        document_url: { type: string }
-        signed_at: { type: string, format: date-time }
+        patient_id: { type: string, format: uuid, nullable: false }
+        organization_id: { type: string, format: uuid, nullable: false }
+        practitioner_id: { type: string, format: uuid, nullable: false }
+        procedure_name: { type: string, nullable: false }
+        document:
+          type: object
+          nullable: false
+          properties:
+            public_id: { type: string, nullable: true }
+            url: { type: string, nullable: false }
+            size: { type: number, nullable: true }
+        signed_at: { type: string, format: date-time, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
     AuditLog:
       type: object
       properties:
         id: { type: string, format: uuid }
-        actor_type: { type: string, enum: [patient, practitioner, admin, platform_admin] }
-        actor_id: { type: string, format: uuid }
-        action: { type: string, enum: [grant_access, revoke_access, create, update, view] }
-        target_table: { type: string }
-        target_id: { type: string, format: uuid }
+        actor_type: { type: string, enum: [patient, practitioner, platform, admin, provider], nullable: true }
+        actor_id: { type: string, format: uuid, nullable: false }
+        action: { type: string, enum: [grant_access, revoke_access, create, update, view], nullable: false }
+        target_table: { type: string, nullable: true }
+        target_id: { type: string, format: uuid, nullable: true }
         created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
 
 paths:
   # ── AUTH ──────────────────────────────────────────────
@@ -214,9 +249,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [full_name, dob, phone, nin, email, password]
+              required: [name, dob, phone, nin, email, password]
               properties:
-                full_name: { type: string }
+                name: { type: string }
                 dob: { type: string, format: date }
                 gender: { type: string }
                 address: { type: string }
@@ -248,11 +283,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, cac_number, admin_email, admin_password, admin_full_name]
+              required: [name, cac_number, admin_email, admin_password, admin_name]
               properties:
                 name: { type: string }
                 cac_number: { type: string }
-                admin_full_name: { type: string }
+                admin_name: { type: string }
                 admin_email: { type: string, format: email }
                 admin_password: { type: string, format: password }
       responses:
@@ -276,7 +311,7 @@ paths:
               type: object
               required: [actor_type, actor_id, code]
               properties:
-                actor_type: { type: string, enum: [patient, provider_organization] }
+                actor_type: { type: string, enum: [patient, provider] }
                 actor_id: { type: string, format: uuid }
                 code: { type: string }
       responses:
@@ -303,7 +338,7 @@ paths:
               properties:
                 email: { type: string, format: email }
                 password: { type: string, format: password }
-                actor_type: { type: string, enum: [patient, practitioner, admin, platform_admin] }
+                actor_type: { type: string, enum: [patient, practitioner, admin, platform] }
       responses:
         "200":
           description: Login successful
@@ -400,7 +435,7 @@ paths:
             schema:
               type: object
               properties:
-                full_name: { type: string }
+                name: { type: string }
                 phone: { type: string }
                 address: { type: string }
       responses:
@@ -867,9 +902,9 @@ paths:
           application/json:
             schema:
               type: object
-              required: [full_name, email, password]
+              required: [name, email, password]
               properties:
-                full_name: { type: string }
+                name: { type: string }
                 email: { type: string, format: email }
                 password: { type: string, format: password }
       responses:

@@ -7,11 +7,15 @@ export const practitioners = pgTable("practitioners", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  organizationId: text("organization_id").references(() => providers.id),
+  organizationId: text("organization_id")
+    .references(() => providers.id)
+    .notNull(),
   fullName: text("name").notNull(),
   email: text("email").notNull().unique(),
-  approvedBy: text("approved_by").references(() => providers.id),
-  status: text("status", { enum: ["pending", "active", "revoked"] }),
+  approvedBy: text("approved_by")
+    .references(() => providers.id)
+    .notNull(),
+  status: text("status", { enum: ["pending", "active", "revoked"] }).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")

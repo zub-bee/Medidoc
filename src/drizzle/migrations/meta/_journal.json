@@ -8,6 +8,13 @@
       "when": 1787689213371,
       "tag": "0000_low_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787694915258,
+      "tag": "0001_windy_forgotten_one",
+      "breakpoints": true
     }
   ]
 }

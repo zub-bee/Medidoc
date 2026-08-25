@@ -7,11 +7,11 @@ export const patients = pgTable("patients", {
     .$defaultFn(() => createId()),
   fullName: text("name").notNull(),
   email: text("email").unique().notNull(),
-  dob: date("dob"),
-  phone: text("phone"),
-  gender: text("gender", { enum: ["female", "male"] }),
+  dob: date("dob").notNull(),
+  phone: text("phone").notNull(),
+  gender: text("gender", { enum: ["female", "male"] }).notNull(),
   address: text("address"),
-  nin: varchar("nin", { length: 11 }).unique(),
+  nin: varchar("nin", { length: 11 }).unique().notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()

@@ -7,10 +7,12 @@ export const payments = pgTable("payments", {
     .primaryKey()
     .$defaultFn(() => createId()),
   invoiceId: text("invoice_id").references(() => invoices.id),
-  amount: decimal("amount", { precision: 10, scale: 2 }),
-  method: text("method", { enum: ["cash", "card", "transfer", "insurance"] }),
-  recordedBy: text("recorded_by"),
-  paidAt: timestamp("paid_at"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  method: text("method", { enum: ["cash", "card", "transfer", "insurance"] })
+    .notNull()
+    .default("transfer"),
+  recordedBy: text("recorded_by").notNull(),
+  paidAt: timestamp("paid_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

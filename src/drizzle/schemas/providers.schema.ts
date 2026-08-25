@@ -7,7 +7,9 @@ export const providers = pgTable("providers", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   cacNumber: varchar("cac_number").notNull().unique(),
-  status: text("status", { enum: ["pending", "verified", "suspended"] }),
+  status: text("status", {
+    enum: ["pending", "verified", "suspended"]
+  }).notNull(),
   verifiedAt: timestamp("verified_at").defaultNow().notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),

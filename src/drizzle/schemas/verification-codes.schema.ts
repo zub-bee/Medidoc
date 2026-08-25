@@ -5,8 +5,8 @@ export const verification_codes = pgTable("verification_codes", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  actorType: text("actor_type", {
-    enum: ["patient", "provider", "practitioner", "platform"]
+  role: text("role", {
+    enum: ["patient", "provider", "practitioner", "platform", "admin"]
   }),
   actorId: text("actor_id"),
   codeHash: text("code_hash"),

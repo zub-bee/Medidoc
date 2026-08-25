@@ -6,9 +6,11 @@ export const patient_summary_versions = pgTable("patient_summary_versions", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  summaryId: text("summary_id").references(() => patient_summaries.id),
-  versionNo: integer("version_no"),
-  data: json("data"),
+  summaryId: text("summary_id")
+    .references(() => patient_summaries.id)
+    .notNull(),
+  versionNo: integer("version_no").notNull(),
+  data: json("data").notNull(),
   changedBy: text("changed_by"),
   changedAt: timestamp("changed_at")
     .defaultNow()

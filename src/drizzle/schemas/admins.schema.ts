@@ -6,14 +6,18 @@ export const admins = pgTable("admins", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
-  organizationId: text("organization_id").references(() => providers.id, {
-    onDelete: "cascade"
-  }),
+  organizationId: text("organization_id")
+    .references(() => providers.id, {
+      onDelete: "cascade"
+    })
+    .notNull(),
   fullName: text("name").notNull(),
   email: text("email").notNull().unique(),
-  status: text("status").references(() => providers.status, {
-    onDelete: "cascade"
-  }),
+  status: text("status")
+    .references(() => providers.status, {
+      onDelete: "cascade"
+    })
+    .notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
