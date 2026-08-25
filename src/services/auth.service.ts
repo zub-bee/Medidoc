@@ -333,7 +333,7 @@ export class AuthService {
     const refreshTokenKey = `refreshToken:${refreshTokenHash}`;
     const sessionKey = `session:${decodedRefresh.sessionId}`;
 
-    await redisClient.watch(refreshTokenKey, sessionKey);
+    await redisClient.watch([refreshTokenKey, sessionKey]);
 
     try {
       const [storedToken, session] = await Promise.all([
