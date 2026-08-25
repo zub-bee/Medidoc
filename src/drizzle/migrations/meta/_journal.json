@@ -15,6 +15,13 @@
       "when": 1787694915258,
       "tag": "0001_windy_forgotten_one",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787701568124,
+      "tag": "0002_military_christian_walker",
+      "breakpoints": true
     }
   ]
 }
