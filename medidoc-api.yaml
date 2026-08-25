@@ -1,0 +1,963 @@
+openapi: 3.0.3
+info:
+  title: Medidoc API
+  version: 1.0.0
+  description: >
+    EHR platform API. Three client types: patient app, clinical dashboard, provider portal.
+    All authenticated routes require a bearer access token. Access tokens last 15 minutes;
+    use the refresh endpoint to get a new one.
+
+servers:
+  - url: http://localhost:4000/api/v1
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    patientId:
+      name: patientId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+
+    Patient:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: string }
+        dob: { type: string, format: date }
+        gender: { type: string }
+        address: { type: string }
+        phone: { type: string }
+        nin: { type: string }
+        email: { type: string, format: email }
+        created_at: { type: string, format: date-time }
+
+    ProviderOrganization:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        cac_number: { type: string }
+        status: { type: string, enum: [pending, verified, suspended] }
+        verified_at: { type: string, format: date-time, nullable: true }
+
+    Practitioner:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        full_name: { type: string }
+        email: { type: string, format: email }
+        approved_by: { type: string, format: uuid }
+        status: { type: string, enum: [pending, active, revoked] }
+
+    Admin:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        full_name: { type: string }
+        email: { type: string, format: email }
+        status: { type: string, enum: [pending, active, revoked] }
+
+    AuthTokens:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer, description: "seconds until access token expires" }
+
+    OrganizationAccess:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        status: { type: string, enum: [active, revoked] }
+        granted_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time, nullable: true }
+
+    PractitionerAccess:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        practitioner_id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        granted_by: { type: string, format: uuid }
+        status: { type: string, enum: [active, revoked] }
+
+    Episode:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        label: { type: string }
+        status: { type: string, enum: [open, closed] }
+        opened_at: { type: string, format: date-time }
+        closed_at: { type: string, format: date-time, nullable: true }
+
+    PatientSummary:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        episode_id: { type: string, format: uuid, nullable: true }
+        category:
+          type: string
+          enum: [problem_list, medications, allergies, vaccinations, preferences, lifestyle, family_history, social_situation, care_plan]
+        data: { type: object }
+        version_no: { type: integer }
+        updated_by: { type: string, format: uuid }
+        updated_at: { type: string, format: date-time }
+
+    ClinicalEntry:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        practitioner_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        episode_id: { type: string, format: uuid, nullable: true }
+        event_type:
+          type: string
+          enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note]
+        data: { type: object }
+        occurred_at: { type: string, format: date-time }
+        recorded_at: { type: string, format: date-time }
+
+    Appointment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        practitioner_id: { type: string, format: uuid, nullable: true }
+        scheduled_at: { type: string, format: date-time }
+        status: { type: string, enum: [scheduled, checked_in, completed, cancelled] }
+        checked_in_by: { type: string, format: uuid, nullable: true }
+        checked_in_at: { type: string, format: date-time, nullable: true }
+
+    Invoice:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        appointment_id: { type: string, format: uuid, nullable: true }
+        amount: { type: number, format: decimal }
+        status: { type: string, enum: [pending, paid, overdue] }
+        insurance_provider: { type: string, nullable: true }
+        insurance_policy_number: { type: string, nullable: true }
+        service_code: { type: string, nullable: true }
+        created_by: { type: string, format: uuid }
+
+    Payment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        invoice_id: { type: string, format: uuid }
+        amount: { type: number, format: decimal }
+        method: { type: string, enum: [cash, card, transfer, insurance] }
+        recorded_by: { type: string, format: uuid }
+        paid_at: { type: string, format: date-time }
+
+    ConsentForm:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patient_id: { type: string, format: uuid }
+        practitioner_id: { type: string, format: uuid }
+        organization_id: { type: string, format: uuid }
+        procedure_name: { type: string }
+        document_url: { type: string }
+        signed_at: { type: string, format: date-time }
+
+    AuditLog:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        actor_type: { type: string, enum: [patient, practitioner, admin, platform_admin] }
+        actor_id: { type: string, format: uuid }
+        action: { type: string, enum: [grant_access, revoke_access, create, update, view] }
+        target_table: { type: string }
+        target_id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+
+paths:
+  # ── AUTH ──────────────────────────────────────────────
+  /auth/register/patient:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new patient account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [full_name, dob, phone, nin, email, password]
+              properties:
+                full_name: { type: string }
+                dob: { type: string, format: date }
+                gender: { type: string }
+                address: { type: string }
+                phone: { type: string }
+                nin: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201":
+          description: Patient created. NIN verification code sent.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "409":
+          description: Email or NIN already registered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/register/organization:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Register a new provider organization (pending until CAC verified)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, cac_number, admin_email, admin_password, admin_full_name]
+              properties:
+                name: { type: string }
+                cac_number: { type: string }
+                admin_full_name: { type: string }
+                admin_email: { type: string, format: email }
+                admin_password: { type: string, format: password }
+      responses:
+        "201":
+          description: Organization and first admin created, status pending
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProviderOrganization"
+
+  /auth/verify:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Confirm a verification code (NIN, CAC, or email)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [actor_type, actor_id, code]
+              properties:
+                actor_type: { type: string, enum: [patient, provider_organization] }
+                actor_id: { type: string, format: uuid }
+                code: { type: string }
+      responses:
+        "200":
+          description: Verified
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Log in as patient, practitioner, admin, or platform admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, actor_type]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+                actor_type: { type: string, enum: [patient, practitioner, admin, platform_admin] }
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthTokens" }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Exchange a refresh token for a new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200":
+          description: New access token issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthTokens" }
+        "401":
+          description: Refresh token invalid, expired, or revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "204":
+          description: Logged out
+
+  # ── PATIENTS ──────────────────────────────────────────
+  /patients/me:
+    get:
+      tags: [Patients]
+      summary: Get the logged-in patient's own profile
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Patient" }
+
+  /patients/{patientId}:
+    get:
+      tags: [Patients]
+      summary: Get a patient's demographics (requires active access grant)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Patient" }
+        "403":
+          description: No active access grant for this patient
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    patch:
+      tags: [Patients]
+      summary: Update a patient's demographics (self, or doctor with access)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name: { type: string }
+                phone: { type: string }
+                address: { type: string }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Patient" }
+
+  # ── ACCESS CONTROL ────────────────────────────────────
+  /patients/{patientId}/organization-access:
+    get:
+      tags: [Access Control]
+      summary: List organizations with access to this patient's record
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/OrganizationAccess" }
+    post:
+      tags: [Access Control]
+      summary: Patient grants an organization access
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [organization_id]
+              properties:
+                organization_id: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Access granted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationAccess" }
+
+  /patients/{patientId}/organization-access/{accessId}/revoke:
+    post:
+      tags: [Access Control]
+      summary: Patient revokes an organization's access
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+        - name: accessId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrganizationAccess" }
+
+  /patients/{patientId}/practitioner-access:
+    get:
+      tags: [Access Control]
+      summary: List practitioners with access to this patient (admin only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PractitionerAccess" }
+    post:
+      tags: [Access Control]
+      summary: Admin grants a doctor access to a patient
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [practitioner_id]
+              properties:
+                practitioner_id: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Access granted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PractitionerAccess" }
+
+  /patients/{patientId}/practitioner-access/{accessId}/revoke:
+    post:
+      tags: [Access Control]
+      summary: Admin revokes a doctor's access to a patient
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+        - name: accessId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Revoked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PractitionerAccess" }
+
+  # ── EPISODES ──────────────────────────────────────────
+  /patients/{patientId}/episodes:
+    get:
+      tags: [Episodes]
+      summary: List a patient's care episodes
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Episode" }
+    post:
+      tags: [Episodes]
+      summary: Open a new episode (doctor only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label: { type: string }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Episode" }
+
+  /episodes/{episodeId}/close:
+    post:
+      tags: [Episodes]
+      summary: Close an episode (doctor only)
+      parameters:
+        - name: episodeId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Episode" }
+
+  # ── PATIENT SUMMARIES ─────────────────────────────────
+  /patients/{patientId}/summaries:
+    get:
+      tags: [Patient Summaries]
+      summary: List a patient's summaries (medical history, meds, allergies, etc). Admins get view-only.
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [problem_list, medications, allergies, vaccinations, preferences, lifestyle, family_history, social_situation, care_plan]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PatientSummary" }
+    post:
+      tags: [Patient Summaries]
+      summary: Create a summary (doctor only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PatientSummary" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientSummary" }
+        "403":
+          description: Admins cannot create or edit medical data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /summaries/{summaryId}:
+    patch:
+      tags: [Patient Summaries]
+      summary: Update a summary in place (doctor only). Old version saved automatically.
+      parameters:
+        - name: summaryId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data: { type: object }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PatientSummary" }
+
+  /summaries/{summaryId}/versions:
+    get:
+      tags: [Patient Summaries]
+      summary: Get the version history of a summary
+      parameters:
+        - name: summaryId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    version_no: { type: integer }
+                    data: { type: object }
+                    changed_by: { type: string, format: uuid }
+                    changed_at: { type: string, format: date-time }
+
+  # ── CLINICAL ENTRIES ──────────────────────────────────
+  /patients/{patientId}/clinical-entries:
+    get:
+      tags: [Clinical Entries]
+      summary: List a patient's clinical entries (vitals, notes, labs, radiology)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+        - name: event_type
+          in: query
+          schema:
+            type: string
+            enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note]
+        - name: episode_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ClinicalEntry" }
+    post:
+      tags: [Clinical Entries]
+      summary: Record a new clinical entry (doctor or nurse only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClinicalEntry" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClinicalEntry" }
+
+  # ── CONSENT FORMS ─────────────────────────────────────
+  /patients/{patientId}/consent-forms:
+    get:
+      tags: [Consent Forms]
+      summary: List a patient's signed consent forms
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ConsentForm" }
+    post:
+      tags: [Consent Forms]
+      summary: Record a signed consent form (doctor only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConsentForm" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConsentForm" }
+
+  # ── APPOINTMENTS ──────────────────────────────────────
+  /patients/{patientId}/appointments:
+    get:
+      tags: [Appointments]
+      summary: List a patient's appointments
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Appointment" }
+    post:
+      tags: [Appointments]
+      summary: Schedule an appointment (admin only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Appointment" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+
+  /appointments/{appointmentId}/check-in:
+    post:
+      tags: [Appointments]
+      summary: Check a patient in (admin only)
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Checked in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+
+  # ── BILLING ───────────────────────────────────────────
+  /patients/{patientId}/invoices:
+    get:
+      tags: [Billing]
+      summary: List a patient's invoices (admin only, doctors get 403)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Invoice" }
+        "403":
+          description: Doctors cannot access billing data
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    post:
+      tags: [Billing]
+      summary: Create an invoice (admin only)
+      parameters:
+        - $ref: "#/components/parameters/patientId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Invoice" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Invoice" }
+
+  /invoices/{invoiceId}/payments:
+    post:
+      tags: [Billing]
+      summary: Record a payment against an invoice (admin only)
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Payment" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Payment" }
+
+  # ── ORGANIZATIONS & STAFF ─────────────────────────────
+  /organizations/{organizationId}/practitioners:
+    get:
+      tags: [Organizations]
+      summary: List an organization's practitioners
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Practitioner" }
+    post:
+      tags: [Organizations]
+      summary: Admin adds a new practitioner (starts as pending)
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [full_name, email, password]
+              properties:
+                full_name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Practitioner" }
+
+  /practitioners/{practitionerId}/approve:
+    post:
+      tags: [Organizations]
+      summary: Admin approves a pending practitioner
+      parameters:
+        - name: practitionerId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Practitioner" }
+
+  # ── PLATFORM ADMIN ────────────────────────────────────
+  /platform/organizations:
+    get:
+      tags: [Platform Admin]
+      summary: List all organizations, any status (platform admin only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ProviderOrganization" }
+
+  /platform/organizations/{organizationId}/verify:
+    post:
+      tags: [Platform Admin]
+      summary: Verify a provider organization's CAC number
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderOrganization" }
+
+  /platform/organizations/{organizationId}/suspend:
+    post:
+      tags: [Platform Admin]
+      summary: Suspend a provider organization
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Suspended
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProviderOrganization" }
+
+  # ── AUDIT LOGS ────────────────────────────────────────
+  /audit-logs:
+    get:
+      tags: [Audit]
+      summary: Search audit logs (platform admin, or org admin scoped to their org)
+      parameters:
+        - name: target_table
+          in: query
+          schema: { type: string }
+        - name: actor_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AuditLog" }
