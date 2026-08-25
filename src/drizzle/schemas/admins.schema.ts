@@ -13,11 +13,9 @@ export const admins = pgTable("admins", {
     .notNull(),
   fullName: text("name").notNull(),
   email: text("email").notNull().unique(),
-  status: text("status")
-    .references(() => providers.status, {
-      onDelete: "cascade"
-    })
-    .notNull(),
+  status: text("status", {
+    enum: ["pending", "verified", "suspended"]
+  }).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
