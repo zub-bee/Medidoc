@@ -24,11 +24,12 @@ export const emailSchema = z
   .email({ message: "Please enter a valid email address." })
   .max(100, { message: "Email must be no more than 100 characters." });
 
-export const roleSchema = z
-  .enum(["user", "admin"], {
-    error: "Role must be either applicant, recruiter, or admin"
-  })
-  .default("user");
+export const roleSchema = z.enum(
+  ["patient", "admin", "provider", "platform", "practitioner"],
+  {
+    error: "Role must be either patient, provider, practitioner or admin"
+  }
+);
 
 export const SigninSchema = z.object({
   email: emailSchema,
@@ -42,8 +43,7 @@ export const SignupSchema = z
     name: nameSchema,
     email: emailSchema,
     password: passwordSchema,
-    confirmPassword: passwordSchema,
-    role: roleSchema
+    confirmPassword: passwordSchema
   })
   .refine(
     data => {
@@ -101,6 +101,60 @@ export const DeleteAccountSchema = z.object({
     .enum(["soft", "hard"], { error: "Type must be either soft or hard" })
     .default("soft")
 });
+
+export const RegisterPatientSchema = z
+  .object({
+    name: nameSchema,
+    dob: z.iso.date(),
+    phone: z.string().min(1, "Phone number is required"),
+    nin: z.string().length(11, "NIN must be exactly 11 characters"),
+    email: emailSchema,
+    password: passwordSchema,
+    confirm_password: passwordSchema,
+    gender: z.enum(["female", "male"]),
+    address: z.string().optional()
+  })
+  .refine(data => data.password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"]
+  });
+
+export const RegisterOrganizationSchema = z.object({
+  name: z.string().min(1, "Organization name is required"),
+  cac_number: z.string().min(1, "CAC number is required"),
+  admin_email: emailSchema,
+  admin_password: passwordSchema,
+  admin_name: nameSchema
+});
+
+export const VerifySchema = z.object({
+  actor_type: z.enum(["patient", "provider"]),
+  actor_id: z.string().min(1, "Actor id is required"),
+  code: z.string().min(1, "Verification code is required")
+});
+
+export const LoginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  actor_type: z.enum(["patient", "practitioner", "admin", "platform"])
+});
+
+export const RefreshSchema = z.object({
+  refresh_token: z.string().min(1)
+});
+
+export const LogoutSchema = z.object({
+  refresh_token: z.string().min(1)
+});
+
+export type RegisterPatientType = z.infer<typeof RegisterPatientSchema>;
+export type RegisterOrganizationType = z.infer<
+  typeof RegisterOrganizationSchema
+>;
+export type VerifyType = z.infer<typeof VerifySchema>;
+export type LoginType = z.infer<typeof LoginSchema>;
+export type RefreshType = z.infer<typeof RefreshSchema>;
+export type LogoutType = z.infer<typeof LogoutSchema>;
 
 export type SignupUserType = z.infer<typeof SignupSchema>;
 export type SigninUserType = z.infer<typeof SigninSchema>;
