@@ -1,10 +1,16 @@
 import { NextFunction } from "express";
 import db from "../configs/db";
 import { users } from "../drizzle/schemas/user.schema";
-import { eq } from "drizzle-orm";
+import { patients } from "../drizzle/schemas/patients.schema";
+import { eq, and } from "drizzle-orm";
 import { ApiError } from "../utils/api-error";
 import { hashPassword, verifyPassword } from "../helpers/auth.helpers";
-import { SignupUserType, VerifyOtpType } from "../validators/auth";
+import {
+  SignupUserType,
+  VerifyOtpType,
+  RegisterPatientType,
+  RegisterOrganizationType
+} from "../validators/auth";
 import {
   DELETE_ACCOUNT_TOKEN_EXPIRY,
   LOCK_TIME_MS,
@@ -14,7 +20,8 @@ import {
   REACTIVATION_AVAILABLE_AT,
   REFRESH_TOKEN_EXPIRY,
   RESET_PASSWORD_TOKEN_EXPIRY,
-  SESSION_EXPIRY
+  SESSION_EXPIRY,
+  ACCESS_TOKEN_EXPIRY
 } from "../constants/auth";
 import {
   generateAccessToken,
@@ -28,7 +35,12 @@ import {
   generateSecureToken,
   generateUUID
 } from "../helpers/token.helpers";
-import { AvatarData, RefreshTokenData, SessionData } from "../types/user";
+import {
+  AvatarData,
+  RefreshTokenData,
+  SessionData,
+  UserRole
+} from "../types/user";
 import { OtpService } from "./otp.service";
 import { deleteFileFromCloudinary } from "./cloudinary.service";
 import redisClient from "../configs/redis";
@@ -48,7 +60,7 @@ export type CookieOptionsType = {
 export class AuthService {
   static async registerUser(user: Omit<SignupUserType, "confirmPassword">) {
     try {
-      const { name, email, password, role } = user;
+      const { name, email, password } = user;
       const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email)
       });
@@ -77,7 +89,6 @@ export class AuthService {
       const userData = JSON.stringify({
         name,
         email,
-        role,
         password: hashedPassword
       });
 
@@ -123,8 +134,163 @@ export class AuthService {
     }
   }
 
-  static async verifyUser({ email, otpCode }: VerifyOtpType) {
-    const hashCode = generateHashedToken(otpCode);
+  static async registerPatientUser(
+    user: Omit<RegisterPatientType, "confirm_password">
+  ) {
+    try {
+      const { name, email, password, dob, gender, address, phone, nin } = user;
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, email)
+      });
+
+      if (existingUser) {
+        throw ApiError.conflict("User with this email already exists");
+      }
+
+      const pending = await redisClient.get(`user:pending:${email}`);
+
+      if (pending) {
+        throw ApiError.conflict(
+          "Signup already in progress. Check your email for OTP."
+        );
+      }
+
+      const hashedPassword = await hashPassword(password);
+
+      await OtpService.checkOtpRestrictions(email); // otp service should be with number as well instead of just email
+      await OtpService.trackOtpRequests(email); // phone will be included as a parameter once otpservice is wired
+
+      const { code, hashCode } = generateOTP(OTP_CODE_LENGTH);
+
+      const redisKey = `user:${email}:${hashCode}`;
+      const indexKey = `user:pending:${email}`;
+      const userData = JSON.stringify({
+        name,
+        email,
+        password: hashedPassword,
+        patient: { dob, gender, address, phone, nin }
+      });
+
+      await OtpService.sendOtp({
+        name,
+        email,
+        templateName: "email-verification",
+        code,
+        hashCode,
+        subject: "Email Verification"
+      });
+
+      try {
+        await redisClient.set(redisKey, userData, {
+          expiration: {
+            type: "PX",
+            value: OTP_EXPIRES_IN
+          }
+        });
+
+        await redisClient.set(indexKey, hashCode, {
+          expiration: {
+            type: "PX",
+            value: OTP_EXPIRES_IN
+          }
+        });
+      } catch (error) {
+        await Promise.allSettled([
+          redisClient.del(redisKey),
+          redisClient.del(indexKey),
+          redisClient.del(`otp:${email}`),
+          redisClient.del(`otp_cooldown:${email}`)
+        ]);
+
+        throw error;
+      }
+    } catch (error) {
+      logger.error(error, "Failed to register user");
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw ApiError.server("Failed to register user");
+    }
+  }
+
+  static async registerOrganizationUser(user: RegisterOrganizationType) {
+    try {
+      const { name, cac_number, email, password } = user;
+      const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, email)
+      });
+
+      if (existingUser) {
+        throw ApiError.conflict("Organization with this email already exists");
+      }
+
+      const pending = await redisClient.get(`user:pending:${email}`);
+
+      if (pending) {
+        throw ApiError.conflict(
+          "Signup already in progress. Check your email for OTP."
+        );
+      }
+
+      const hashedPassword = await hashPassword(password);
+
+      await OtpService.checkOtpRestrictions(email);
+      await OtpService.trackOtpRequests(email);
+
+      const { code, hashCode } = generateOTP(OTP_CODE_LENGTH);
+
+      const redisKey = `user:${email}:${hashCode}`;
+      const indexKey = `user:pending:${email}`;
+      const userData = JSON.stringify({
+        name,
+        email,
+        password: hashedPassword
+      });
+
+      await OtpService.sendOtp({
+        name,
+        email,
+        templateName: "email-verification",
+        code,
+        hashCode,
+        subject: "Email Verification"
+      });
+
+      try {
+        await redisClient.set(redisKey, userData, {
+          expiration: {
+            type: "PX",
+            value: OTP_EXPIRES_IN
+          }
+        });
+
+        await redisClient.set(indexKey, hashCode, {
+          expiration: {
+            type: "PX",
+            value: OTP_EXPIRES_IN
+          }
+        });
+      } catch (error) {
+        await Promise.allSettled([
+          redisClient.del(redisKey),
+          redisClient.del(indexKey),
+          redisClient.del(`otp:${email}`),
+          redisClient.del(`otp_cooldown:${email}`)
+        ]);
+
+        throw error;
+      }
+    } catch (error) {
+      logger.error(error, "Failed to register user");
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw ApiError.server("Failed to register user");
+    }
+  }
+
+  static async verifyUser({ email, code, role }: VerifyOtpType) {
+    const hashCode = generateHashedToken(code);
 
     await OtpService.verifyOtp(hashCode, email);
 
@@ -134,15 +300,57 @@ export class AuthService {
       throw ApiError.badRequest("Invalid or expired otp");
     }
 
-    const { name, email: userEmail, role, password } = JSON.parse(userData);
-
-    const [user] = await db.insert(users).values({
+    // for patient
+    const {
       name,
       email: userEmail,
-      role,
       password,
-      isEmailVerified: true
-    }).returning();
+      patient
+    } = JSON.parse(userData) as {
+      name: string;
+      email: string;
+      password: string;
+      patient?: {
+        dob: string;
+        gender: "female" | "male";
+        address?: string;
+        phone: string;
+        nin: string;
+      };
+    };
+
+    // for organization
+
+    const user = await db.transaction(async tx => {
+      const [createdUser] = await tx
+        .insert(users)
+        .values({
+          name,
+          role,
+          email: userEmail,
+          password,
+          isEmailVerified: true
+        })
+        .returning();
+
+      if (patient) {
+        try {
+          await tx.insert(patients).values({
+            fullName: name,
+            email: userEmail,
+            ...patient
+          });
+        } catch (error) {
+          logger.error(
+            { error, userEmail, name },
+            "Failed to create patient profile"
+          );
+          throw ApiError.server("Failed to create patient profile");
+        }
+      }
+
+      return createdUser;
+    });
 
     await redisClient.del(`user:${email}:${hashCode}`);
     await redisClient.del(`user:pending:${email}`);
@@ -151,7 +359,6 @@ export class AuthService {
       _id: user.id,
       name,
       email,
-      role: role,
       isEmailVerified: true
     };
   }
@@ -159,11 +366,13 @@ export class AuthService {
   static async signinUser(
     {
       email,
+      role,
       password,
       ip,
       userAgent
     }: {
       email: string;
+      role: UserRole;
       password: string;
       ip: string;
       userAgent: string;
@@ -172,7 +381,11 @@ export class AuthService {
   ) {
     try {
       const user = await db.query.users.findFirst({
-        where: eq(users.email, email)
+        where: and(
+          eq(users.email, email),
+          eq(users.role, role),
+          eq(users.isDeleted, false)
+        )
       });
       if (!user) {
         throw ApiError.unauthorized("Invalid credentials");
@@ -201,23 +414,29 @@ export class AuthService {
           lockUntil = new Date(Date.now() + LOCK_TIME_MS);
         }
 
-        await db.update(users).set({
-          failedLoginAttempts: newAttempts,
-          lockUntil
-        }).where(eq(users.id, user.id));
+        await db
+          .update(users)
+          .set({
+            failedLoginAttempts: newAttempts,
+            lockUntil
+          })
+          .where(eq(users.id, user.id));
 
         throw ApiError.unauthorized("Invalid credentials");
       }
 
-      await db.update(users).set({
-        failedLoginAttempts: 0,
-        lockUntil: null
-      }).where(eq(users.id, user.id));
+      await db
+        .update(users)
+        .set({
+          failedLoginAttempts: 0,
+          lockUntil: null
+        })
+        .where(eq(users.id, user.id));
 
-      await AuthService.handleToken(
+      const tokens = await AuthService.handleToken(
         {
           _id: user.id,
-          role: user.role as "user" | "admin",
+          role,
           ip,
           userAgent
         },
@@ -228,8 +447,10 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified
+        isEmailVerified: user.isEmailVerified,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        expires_in: Math.floor(ACCESS_TOKEN_EXPIRY / 1000)
       };
     } catch (err) {
       if (err instanceof ApiError) {
@@ -240,7 +461,7 @@ export class AuthService {
   }
 
   static async handleToken(
-    user: { _id: string; role: "user" | "admin" } & {
+    user: { _id: string; role: UserRole } & {
       ip: string;
       userAgent: string;
     },
@@ -303,16 +524,25 @@ export class AuthService {
     context.setAuthCookie &&
       context.setAuthCookie(accessToken, refreshToken, sessionId);
 
-    await db.update(users).set({
-      lastLoginAt: new Date(),
-      failedLoginAttempts: 0,
-      lockUntil: null
-    }).where(eq(users.id, user._id));
+    await db
+      .update(users)
+      .set({
+        lastLoginAt: new Date(),
+        failedLoginAttempts: 0,
+        lockUntil: null
+      })
+      .where(eq(users.id, user._id));
+
+    return {
+      accessToken,
+      refreshToken,
+      sessionId
+    };
   }
 
   static async getUserProfile(userId: string) {
     const user = await db.query.users.findFirst({
-        where: eq(users.id, userId)
+      where: eq(users.id, userId)
     });
     return user;
   }
@@ -349,10 +579,7 @@ export class AuthService {
         storedToken
       ) as RefreshTokenData;
 
-      if (
-        userId !== decodedRefresh._id ||
-        tokenHash !== refreshTokenHash
-      ) {
+      if (userId !== decodedRefresh._id || tokenHash !== refreshTokenHash) {
         throw ApiError.unauthorized("Invalid refresh token.");
       }
 
@@ -381,7 +608,7 @@ export class AuthService {
             throw ApiError.unauthorized("Token mismatch.");
           }
         } catch (e) {
-            // Access token might be expired, which is normal for a refresh flow
+          // Access token might be expired, which is normal for a refresh flow
         }
       }
 
@@ -394,7 +621,7 @@ export class AuthService {
 
       const newAccessToken = generateAccessToken({
         _id: user.id,
-        role: user.role as "user" | "admin",
+        role: user.role,
         sessionId: storedSessionData.sessionId
       });
 
@@ -506,8 +733,8 @@ export class AuthService {
     });
   }
 
-  static async verifyResetPasswordOtp(otpCode: string, email: string) {
-    const hashedCode = generateHashedToken(otpCode);
+  static async verifyResetPasswordOtp(code: string, email: string) {
+    const hashedCode = generateHashedToken(code);
 
     const redisKey = `reset_password:${email}:${hashedCode}`;
     const storedHashCode = await redisClient.get(redisKey);
@@ -610,7 +837,7 @@ export class AuthService {
     newPassword: string
   ) {
     const user = await db.query.users.findFirst({
-        where: eq(users.email, email)
+      where: eq(users.email, email)
     });
 
     if (!user) {
@@ -618,22 +845,18 @@ export class AuthService {
     }
 
     if (user.lockUntil && new Date(user.lockUntil) > new Date()) {
-      throw (
-        ApiError.forbidden(
-          `Your account has been locked. Please try again after ${
-            getRemainingTime(user.lockUntil).minutes
-          } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
-        )
+      throw ApiError.forbidden(
+        `Your account has been locked. Please try again after ${
+          getRemainingTime(user.lockUntil).minutes
+        } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
       );
     }
 
     if (user.failedLoginAttempts >= LOGIN_MAX_ATTEMPTS && user.lockUntil) {
-      throw (
-        ApiError.forbidden(
-          `You have exceeded the maximum number of login attempts. Please try again after ${
-            getRemainingTime(user.lockUntil).minutes
-          } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
-        )
+      throw ApiError.forbidden(
+        `You have exceeded the maximum number of login attempts. Please try again after ${
+          getRemainingTime(user.lockUntil).minutes
+        } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
       );
     }
 
@@ -644,10 +867,8 @@ export class AuthService {
     const redisKey = `reset_password:status:${email}`;
     const status = await redisClient.get(redisKey);
     if (status !== "pending") {
-      throw (
-        ApiError.unauthorized(
-          "Please request a password reset before attempting to set a new password."
-        )
+      throw ApiError.unauthorized(
+        "Please request a password reset before attempting to set a new password."
       );
     }
 
@@ -663,7 +884,10 @@ export class AuthService {
     }
 
     const hashedPassword = await hashPassword(newPassword);
-    await db.update(users).set({ password: hashedPassword }).where(eq(users.email, email));
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.email, email));
     await redisClient.del(`reset_password:status:${email}`);
 
     //? Delete all user sessions
@@ -687,7 +911,7 @@ export class AuthService {
     }
   ) {
     const user = await db.query.users.findFirst({
-        where: eq(users.id, userId)
+      where: eq(users.id, userId)
     });
     if (!user) {
       throw ApiError.unauthorized("Unauthorized access");
@@ -711,7 +935,10 @@ export class AuthService {
     }
 
     const hashedPassword = await hashPassword(newPassword);
-    await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId));
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
 
     await this.deleteAllUserSessions(userId);
 
@@ -722,7 +949,7 @@ export class AuthService {
 
   static async requestDeleteAccount(userId: string, password: string) {
     const user = await db.query.users.findFirst({
-        where: eq(users.id, userId)
+      where: eq(users.id, userId)
     });
     if (!user) {
       throw ApiError.unauthorized("Unauthorized access");
@@ -739,10 +966,13 @@ export class AuthService {
         lockUntil = new Date(Date.now() + LOCK_TIME_MS);
       }
 
-      await db.update(users).set({
-        failedLoginAttempts: newAttempts,
-        lockUntil
-      }).where(eq(users.id, user.id));
+      await db
+        .update(users)
+        .set({
+          failedLoginAttempts: newAttempts,
+          lockUntil
+        })
+        .where(eq(users.id, user.id));
       throw ApiError.unauthorized("Invalid credentials");
     }
 
@@ -785,7 +1015,7 @@ export class AuthService {
     token: string;
   }) {
     const user = await db.query.users.findFirst({
-        where: eq(users.id, userId)
+      where: eq(users.id, userId)
     });
     if (!user) {
       throw ApiError.unauthorized("Unauthorized access");
@@ -805,12 +1035,16 @@ export class AuthService {
     await redisClient.del(redisKey);
 
     if (type === "soft") {
-
-      await db.update(users).set({
-        isDeleted: true,
-        deletedAt: new Date(),
-        reActivateAvailableAt: new Date(Date.now() + REACTIVATION_AVAILABLE_AT)
-      }).where(eq(users.id, userId));
+      await db
+        .update(users)
+        .set({
+          isDeleted: true,
+          deletedAt: new Date(),
+          reActivateAvailableAt: new Date(
+            Date.now() + REACTIVATION_AVAILABLE_AT
+          )
+        })
+        .where(eq(users.id, userId));
       await AuthService.deleteAllUserSessions(userId);
     } else if (type === "hard") {
       const avatar = user.avatar as AvatarData | string | null | undefined;
@@ -825,7 +1059,7 @@ export class AuthService {
 
   static async reactivateAccount(userId: string) {
     const user = await db.query.users.findFirst({
-        where: eq(users.id, userId)
+      where: eq(users.id, userId)
     });
     if (!user) {
       throw ApiError.unauthorized("Unauthorized access");
@@ -853,10 +1087,13 @@ export class AuthService {
       );
     }
 
-    await db.update(users).set({
-      isDeleted: false,
-      deletedAt: null,
-      reActivateAvailableAt: null
-    }).where(eq(users.id, userId));
+    await db
+      .update(users)
+      .set({
+        isDeleted: false,
+        deletedAt: null,
+        reActivateAvailableAt: null
+      })
+      .where(eq(users.id, userId));
   }
 }

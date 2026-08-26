@@ -31,7 +31,7 @@ export function setAuthCookies(
       cookie: "refreshToken",
       value: refreshToken,
       maxAge: REFRESH_TOKEN_EXPIRY,
-      path: "/api/v1/auth/refresh-token"
+      path: "/api/v1/auth/refresh"
     },
     {
       cookie: "sid",
@@ -43,7 +43,7 @@ export function setAuthCookies(
 
 export function clearAuthCookies(res: Response) {
   clearCookie(res, "accessToken");
-  clearCookie(res, "refreshToken", "/api/v1/auth/refresh-token");
+  clearCookie(res, "refreshToken", "/api/v1/auth/refresh");
   clearCookie(res, "sid");
 }
 

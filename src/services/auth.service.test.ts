@@ -1,3 +1,5 @@
+/// <reference types="node" />
+
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -29,6 +31,67 @@ const applyTestEnv = () => {
   process.env.GMAIL_APP_PASSWORD = "16characterpassword";
   process.env.GMAIL_USER = "user@gmail.com";
 };
+
+test("signinUser returns auth tokens in the payload", async t => {
+  applyTestEnv();
+
+  const { AuthService } = await import("./auth.service.ts");
+  const { default: db } = await import("../configs/db.ts");
+  const authHelpers = await import("../helpers/auth.helpers.ts");
+
+  t.mock.method(db.query.users, "findFirst", async () => ({
+    id: "user_123",
+    name: "Jane Doe",
+    email: "jane@example.com",
+    password: "hashed-password",
+    isEmailVerified: true,
+    failedLoginAttempts: 0,
+    lockUntil: null,
+    role: "patient"
+  }));
+
+  t.mock.method(
+    db,
+    "update",
+    () =>
+      ({
+        set: () => ({
+          where: async () => undefined
+        })
+      }) as never
+  );
+
+  t.mock.method(authHelpers, "verifyPassword", async () => true);
+
+  t.mock.method(AuthService, "handleToken", async () => ({
+    accessToken: "access-token",
+    refreshToken: "refresh-token",
+    sessionId: "session-123"
+  }));
+
+  const result = await AuthService.signinUser(
+    {
+      email: "jane@example.com",
+      role: "patient",
+      password: "plain-password",
+      ip: "127.0.0.1",
+      userAgent: "test-agent"
+    },
+    {
+      setAuthCookie: () => undefined
+    }
+  );
+
+  assert.deepEqual(result, {
+    id: "user_123",
+    name: "Jane Doe",
+    email: "jane@example.com",
+    isEmailVerified: true,
+    access_token: "access-token",
+    refresh_token: "refresh-token",
+    expires_in: 900
+  });
+});
 
 test("registerUser cleans up pending signup state when redis persistence fails", async t => {
   applyTestEnv();
@@ -73,8 +136,7 @@ test("registerUser cleans up pending signup state when redis persistence fails",
       AuthService.registerUser({
         name: "Test User",
         email,
-        password: "super-secret",
-        role: "user"
+        password: "super-secret"
       }),
     /Failed to register user/
   );

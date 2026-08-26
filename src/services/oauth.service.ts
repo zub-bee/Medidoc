@@ -38,12 +38,16 @@ export class OAuthService {
         );
       }
 
-      const [updatedUser] = await db.update(users).set({
-        provider: user.provider,
-        providerId: user.providerId,
-        isEmailVerified: existingUser.isEmailVerified || user.isEmailVerified,
-        avatar: user.avatar ? { url: user.avatar } : null
-      }).where(eq(users.id, existingUser.id)).returning();
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          provider: user.provider,
+          providerId: user.providerId,
+          isEmailVerified: existingUser.isEmailVerified || user.isEmailVerified,
+          avatar: user.avatar ? { url: user.avatar } : null
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
 
       await AuthService.handleToken(
         {
@@ -57,14 +61,18 @@ export class OAuthService {
       return updatedUser;
     }
 
-    const [newUser] = await db.insert(users).values({
-      name: user.name,
-      email: user.email,
-      isEmailVerified: user.isEmailVerified,
-      provider: user.provider,
-      providerId: user.providerId,
-      avatar: user.avatar ? { url: user.avatar } : null
-    }).returning();
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        name: user.name,
+        role: "patient", // TODO: this is a dummy to fix this type error. role comes from oauth later
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        provider: user.provider,
+        providerId: user.providerId,
+        avatar: user.avatar ? { url: user.avatar } : null
+      })
+      .returning();
 
     await AuthService.handleToken(
       {

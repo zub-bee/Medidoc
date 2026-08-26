@@ -4,11 +4,9 @@ import { AsyncHandler } from "../utils/async-handler";
 
 import { ApiError } from "../utils/api-error";
 import { AuthService } from "../services/auth.service";
-import {
-  clearAuthCookies,
-  setAuthCookies
-} from "../helpers/cookie.helper";
+import { clearAuthCookies, setAuthCookies } from "../helpers/cookie.helper";
 import { AvatarData, UserRequest } from "../types/user";
+import { ACCESS_TOKEN_EXPIRY } from "../constants/auth";
 import {
   deleteFileFromCloudinary,
   uploadToCloudinary
@@ -21,7 +19,7 @@ import { eq } from "drizzle-orm";
 //? SIGNUP USER
 export const signupUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return next(ApiError.badRequest("Name, email and password are required"));
     }
@@ -29,8 +27,48 @@ export const signupUser = AsyncHandler(
     await AuthService.registerUser({
       name,
       email,
-      password,
-      role
+      password
+    });
+
+    return ApiResponse.Success(
+      res,
+      "User registered successfully. Please check your email for verification."
+    );
+  }
+);
+
+export const signupPatientUser = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return next(ApiError.badRequest("Name, email and password are required"));
+    }
+
+    await AuthService.registerPatientUser(req.body);
+
+    return ApiResponse.Success(
+      res,
+      "User registered successfully. Please check your email for verification."
+    );
+  }
+);
+
+export const signupOrganizationUser = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, cac_number, email, password } = req.body;
+    if (!name || !email || !cac_number || !password) {
+      return next(
+        ApiError.badRequest(
+          "Company name, email, CAC number and password are required"
+        )
+      );
+    }
+
+    await AuthService.registerOrganizationUser({
+      name,
+      cac_number,
+      email,
+      password
     });
 
     return ApiResponse.Success(
@@ -43,31 +81,40 @@ export const signupUser = AsyncHandler(
 //? VERIFY USER
 export const verifyUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, otpCode }: VerifyOtpType = req.body;
+    const { role, code, email }: VerifyOtpType = req.body;
 
-    if (!email || !otpCode) {
-      return next(ApiError.badRequest("Email and code are required"));
+    if (!role || !code || !email) {
+      return next(
+        ApiError.badRequest("Email, user id, role and code are required")
+      );
     }
 
-    await AuthService.verifyUser({ email, otpCode });
+    const createdUser = await AuthService.verifyUser({ email, code, role });
 
-    return ApiResponse.ok(res, "User verified successfully");
+    return ApiResponse.ok(res, "User verified successfully", {
+      user: {
+        id: createdUser._id,
+        name: createdUser.name,
+        email: createdUser.email,
+        isEmailVerified: createdUser.isEmailVerified
+      }
+    });
   }
 );
 
 //? SIGNIN USER
 export const signinUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email, password, role } = req.body;
+    if (!email || !password || !role) {
       return next(ApiError.badRequest("Email and password are required"));
     }
 
     const ip = req.ip || "Unknown";
     const userAgent = req.headers["user-agent"] || "Unknown";
 
-    await AuthService.signinUser(
-      { email, password, ip, userAgent },
+    const signedInUser = await AuthService.signinUser(
+      { email, role, password, ip, userAgent },
       {
         setAuthCookie: (
           accessToken: string,
@@ -79,7 +126,7 @@ export const signinUser = AsyncHandler(
       }
     );
 
-    return ApiResponse.ok(res, "User signed in successfully!");
+    return ApiResponse.ok(res, "User signed in successfully!", signedInUser);
   }
 );
 
@@ -116,7 +163,6 @@ export const getUserProfile = AsyncHandler(
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
         avatar: user.avatar,
         isEmailVerified: user.isEmailVerified,
         lastLoginAt: user.lastLoginAt,
@@ -165,10 +211,7 @@ export const updateProfile = AsyncHandler(
       await db.update(users).set(updateData).where(eq(users.id, user.id));
     }
 
-    if (
-      avatar?.public_id &&
-      avatar.public_id !== updatedAvatar?.public_id
-    ) {
+    if (avatar?.public_id && avatar.public_id !== updatedAvatar?.public_id) {
       await deleteFileFromCloudinary([avatar.public_id]);
     }
 
@@ -179,7 +222,6 @@ export const updateProfile = AsyncHandler(
         id: updatedUser?.id,
         name: updatedUser?.name,
         email: updatedUser?.email,
-        role: updatedUser?.role,
         avatar: updatedUser?.avatar,
         isEmailVerified: updatedUser?.isEmailVerified,
         lastLoginAt: updatedUser?.lastLoginAt
@@ -192,19 +234,28 @@ export const updateProfile = AsyncHandler(
 export const refreshToken = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const accessToken = req.cookies?.accessToken;
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refresh_token;
 
     const token = await AuthService.refreshTokens(accessToken, refreshToken);
 
     if (!token) {
-      return next(ApiError.server("Failed to refresh tokens!"));
+      return next(
+        ApiError.server(
+          "Failed to refresh tokens! Attach your access token \
+                                  as cookies and attach your refresh token to the body/cookies"
+        )
+      );
     }
 
     const newAccessToken = token.accessToken;
     const newRefreshToken = token.refreshToken;
     setAuthCookies(res, newAccessToken, newRefreshToken, token.sessionId);
 
-    return ApiResponse.Success(res, "Tokens refreshed successfully!");
+    return ApiResponse.Success(res, "Tokens refreshed successfully!", {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+      expires_in: Math.floor(ACCESS_TOKEN_EXPIRY / 1000)
+    });
   }
 );
 
@@ -249,12 +300,12 @@ export const forgotPassword = AsyncHandler(
 //? VERIFY RESET PASSWORD TOKEN
 export const verifyResetPasswordOtp = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { otpCode, email } = req.body;
-    if (!otpCode || !email) {
-      return next(ApiError.badRequest("OtpCode and email are required!"));
+    const { code, email } = req.body;
+    if (!code || !email) {
+      return next(ApiError.badRequest("code and email are required!"));
     }
 
-    await AuthService.verifyResetPasswordOtp(otpCode, email);
+    await AuthService.verifyResetPasswordOtp(code, email);
 
     return ApiResponse.ok(
       res,
@@ -348,9 +399,9 @@ export const requestDeleteAccount = AsyncHandler(
 //? DELETE/DEACTIVATE ACCOUNT
 export const deleteAccount = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const { userId, type }: DeleteAccountType = req.body;
+    const { user_id, type }: DeleteAccountType = req.body;
 
-    if (!userId || !type) {
+    if (!user_id || !type) {
       return next(ApiError.badRequest("User id and type are required!"));
     }
 
@@ -368,13 +419,13 @@ export const deleteAccount = AsyncHandler(
       );
     }
 
-    if (userId !== reqUserId.toString()) {
+    if (user_id !== reqUserId.toString()) {
       return next(
         ApiError.unauthorized("You are not authorized to perform this action")
       );
     }
 
-    await AuthService.deleteOrDeactiveAccount({ userId, type, token });
+    await AuthService.deleteOrDeactiveAccount({ userId: user_id, type, token });
 
     clearAuthCookies(res);
 

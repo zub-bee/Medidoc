@@ -6,7 +6,7 @@ const JWT_REFRESH_TOKEN_EXPIRY = "7d";
 
 export function generateAccessToken(user: {
   _id: string;
-  role: "patient" | "admin" | "provider" | "practitioner" | "platform_admin";
+  role: "patient" | "admin" | "provider" | "practitioner" | "platform";
   sessionId: string;
 }) {
   return jwt.sign(

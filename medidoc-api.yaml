@@ -3,12 +3,12 @@ info:
   title: Medidoc API
   version: 1.0.0
   description: >
-    EHR platform API. Three client types: patient app, clinical dashboard, provider portal.
-    All authenticated routes require a bearer access token. Access tokens last 15 minutes;
-    use the refresh endpoint to get a new one.
+    EHR platform API. Three client types: patient app, clinical dashboard,
+    provider portal. All authenticated routes require a bearer access token.
+    Access tokens last 15 minutes; use the refresh endpoint to get a new one.
 
 servers:
-  - url: http://localhost:4000
+  - url: http://localhost:4000/api/v1
 
 security:
   - bearerAuth: []
@@ -44,7 +44,7 @@ components:
         email: { type: string, format: email }
         dob: { type: string, format: date, nullable: false }
         phone: { type: string, nullable: false }
-        gender: { type: string, enum: [female, male], nullable: false }
+        gender: { type: string, enum: [ female, male ], nullable: false }
         address: { type: string, nullable: true }
         nin: { type: string, nullable: false }
         created_at: { type: string, format: date-time }
@@ -56,7 +56,7 @@ components:
         id: { type: string, format: uuid }
         name: { type: string }
         cac_number: { type: string }
-        status: { type: string, enum: [pending, verified, suspended] }
+        status: { type: string, enum: [ pending, verified, suspended ] }
         verified_at: { type: string, format: date-time, nullable: true }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
@@ -69,7 +69,7 @@ components:
         name: { type: string }
         email: { type: string, format: email }
         approved_by: { type: string, format: uuid, nullable: false }
-        status: { type: string, enum: [pending, active, revoked], nullable: false }
+        status: { type: string, enum: [ pending, active, revoked ], nullable: false }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
 
@@ -106,7 +106,7 @@ components:
         id: { type: string, format: uuid }
         patient_id: { type: string, format: uuid, nullable: false }
         organization_id: { type: string, format: uuid, nullable: false }
-        status: { type: string, enum: [active, revoked], nullable: false }
+        status: { type: string, enum: [ active, revoked ], nullable: false }
         granted_at: { type: string, format: date-time, nullable: true }
         revoked_at: { type: string, format: date-time, nullable: true }
 
@@ -117,7 +117,7 @@ components:
         practitioner_id: { type: string, format: uuid, nullable: false }
         patient_id: { type: string, format: uuid, nullable: false }
         granted_by: { type: string, format: uuid, nullable: false }
-        status: { type: string, enum: [active, revoked], nullable: false }
+        status: { type: string, enum: [ active, revoked ], nullable: false }
         granted_at: { type: string, format: date-time, nullable: true }
         revoked_at: { type: string, format: date-time, nullable: true }
 
@@ -128,7 +128,7 @@ components:
         patient_id: { type: string, format: uuid, nullable: false }
         organization_id: { type: string, format: uuid, nullable: false }
         label: { type: string, nullable: true }
-        status: { type: string, enum: [open, closed], nullable: false }
+        status: { type: string, enum: [ open, closed ], nullable: false }
         opened_at: { type: string, format: date-time, nullable: true }
         closed_at: { type: string, format: date-time, nullable: true }
 
@@ -140,7 +140,18 @@ components:
         episode_id: { type: string, format: uuid, nullable: true }
         category:
           type: string
-          enum: [problem_list, medications, allergies, vaccinations, preferences, lifestyle, family_history, social_situation, care_plan]
+          enum:
+            [
+              problem_list,
+              medications,
+              allergies,
+              vaccinations,
+              preferences,
+              lifestyle,
+              family_history,
+              social_situation,
+              care_plan
+            ]
           nullable: true
         data: { type: object, nullable: false }
         version_no: { type: integer, nullable: true }
@@ -157,7 +168,17 @@ components:
         episode_id: { type: string, format: uuid, nullable: true }
         event_type:
           type: string
-          enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note, note]
+          enum:
+            [
+              observation,
+              order,
+              procedure,
+              lab_result,
+              radiology,
+              vital_signs,
+              progress_note,
+              note
+            ]
           nullable: false
         data: { type: object, nullable: false }
         occurred_at: { type: string, format: date-time, nullable: false }
@@ -171,7 +192,12 @@ components:
         organization_id: { type: string, format: uuid, nullable: false }
         practitioner_id: { type: string, format: uuid, nullable: false }
         scheduled_at: { type: string, format: date-time, nullable: true }
-        status: { type: string, enum: [scheduled, checked_in, completed, cancelled], nullable: false }
+        status:
+          {
+            type: string,
+            enum: [ scheduled, checked_in, completed, cancelled ],
+            nullable: false
+          }
         checked_in_by: { type: string, format: uuid, nullable: true }
         checked_in_at: { type: string, format: date-time, nullable: true }
         created_at: { type: string, format: date-time }
@@ -185,7 +211,7 @@ components:
         organization_id: { type: string, format: uuid, nullable: false }
         appointment_id: { type: string, format: uuid, nullable: true }
         amount: { type: number, format: decimal, nullable: false }
-        status: { type: string, enum: [pending, paid, overdue], nullable: false }
+        status: { type: string, enum: [ pending, paid, overdue ], nullable: false }
         insurance_provider: { type: string, nullable: true }
         insurance_policy_number: { type: string, nullable: true }
         service_code: { type: string, nullable: true }
@@ -199,7 +225,7 @@ components:
         id: { type: string, format: uuid }
         invoice_id: { type: string, format: uuid, nullable: true }
         amount: { type: number, format: decimal, nullable: false }
-        method: { type: string, enum: [cash, card, transfer, insurance], nullable: false }
+        method: { type: string, enum: [ cash, card, transfer, insurance ], nullable: false }
         recorded_by: { type: string, format: uuid, nullable: false }
         paid_at: { type: string, format: date-time, nullable: false }
         created_at: { type: string, format: date-time }
@@ -228,9 +254,19 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        actor_type: { type: string, enum: [patient, practitioner, platform, admin, provider], nullable: true }
-        actor_id: { type: string, format: uuid, nullable: false }
-        action: { type: string, enum: [grant_access, revoke_access, create, update, view], nullable: false }
+        role:
+          {
+            type: string,
+            enum: [ patient, practitioner, platform, admin, provider ],
+            nullable: true
+          }
+        user_id: { type: string, format: uuid, nullable: false }
+        action:
+          {
+            type: string,
+            enum: [ grant_access, revoke_access, create, update, view ],
+            nullable: false
+          }
         target_table: { type: string, nullable: true }
         target_id: { type: string, format: uuid, nullable: true }
         created_at: { type: string, format: date-time }
@@ -240,7 +276,7 @@ paths:
   # ── AUTH ──────────────────────────────────────────────
   /auth/register/patient:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security: []
       summary: Register a new patient account
       requestBody:
@@ -249,7 +285,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, dob, phone, nin, email, password]
+              required: [ name, dob, phone, nin, email, password, confirm_password ]
               properties:
                 name: { type: string }
                 dob: { type: string, format: date }
@@ -259,6 +295,19 @@ paths:
                 nin: { type: string }
                 email: { type: string, format: email }
                 password: { type: string, format: password }
+                confirm_password: { type: string, format: password }
+            examples:
+              example1:
+                value:
+                  name: string
+                  dob: 2026-01-01
+                  gender: string
+                  address: string
+                  phone: string
+                  nin: string
+                  email: user@example.com
+                  password: string
+                  confirm_password: string
       responses:
         "201":
           description: Patient created. NIN verification code sent.
@@ -266,6 +315,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Patient"
+              examples:
+                example1:
+                  value:
+                    id: 00000000-0000-0000-0000-000000000000
+                    name: string
+                    email: user@example.com
+                    dob: 2026-01-01
+                    phone: string
+                    gender: female
+                    address: string
+                    nin: string
+                    created_at: 2026-01-01T00:00:00Z
+                    updated_at: 2026-01-01T00:00:00Z
         "409":
           description: Email or NIN already registered
           content:
@@ -274,7 +336,7 @@ paths:
 
   /auth/register/organization:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security: []
       summary: Register a new provider organization (pending until CAC verified)
       requestBody:
@@ -283,13 +345,32 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, cac_number, admin_email, admin_password, admin_name]
+              required:
+                - name
+                - cac_number
+                - email
+                - password
               properties:
-                name: { type: string }
-                cac_number: { type: string }
-                admin_name: { type: string }
-                admin_email: { type: string, format: email }
-                admin_password: { type: string, format: password }
+                name:
+                  type: string
+                cac_number:
+                  type: string
+                admin_name:
+                  type: string
+                admin_email:
+                  type: string
+                  format: email
+                admin_password:
+                  type: string
+                  format: password
+            examples:
+              example1:
+                value:
+                  name: string
+                  cac_number: string
+                  admin_name: string
+                  admin_email: user@example.com
+                  admin_password: string
       responses:
         "201":
           description: Organization and first admin created, status pending
@@ -300,7 +381,7 @@ paths:
 
   /auth/verify:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security: []
       summary: Confirm a verification code (NIN, CAC, or email)
       requestBody:
@@ -309,11 +390,19 @@ paths:
           application/json:
             schema:
               type: object
-              required: [actor_type, actor_id, code]
+              required: [ role, user_id, code ]
               properties:
-                actor_type: { type: string, enum: [patient, provider] }
-                actor_id: { type: string, format: uuid }
+                email: { type: string }
+                role: { type: string, enum: [ patient, provider ] }
+                user_id: { type: string, format: uuid }
                 code: { type: string }
+            examples:
+              example1:
+                value:
+                  email: example@email.com
+                  role: patient
+                  user_id: 00000000-0000-0000-0000-000000000000
+                  code: string
       responses:
         "200":
           description: Verified
@@ -325,7 +414,7 @@ paths:
 
   /auth/login:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security: []
       summary: Log in as patient, practitioner, admin, or platform admin
       requestBody:
@@ -334,11 +423,11 @@ paths:
           application/json:
             schema:
               type: object
-              required: [email, password, actor_type]
+              required: [ email, password, role ]
               properties:
                 email: { type: string, format: email }
                 password: { type: string, format: password }
-                actor_type: { type: string, enum: [patient, practitioner, admin, platform] }
+                role: { type: string, enum: [ patient, practitioner, admin, platform ] }
       responses:
         "200":
           description: Login successful
@@ -353,7 +442,7 @@ paths:
 
   /auth/refresh:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       security: []
       summary: Exchange a refresh token for a new access token
       requestBody:
@@ -362,7 +451,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [refresh_token]
+              required: [ refresh_token ]
               properties:
                 refresh_token: { type: string }
       responses:
@@ -379,7 +468,7 @@ paths:
 
   /auth/logout:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Revoke the current refresh token
       requestBody:
         required: true
@@ -387,7 +476,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [refresh_token]
+              required: [ refresh_token ]
               properties:
                 refresh_token: { type: string }
       responses:
@@ -397,7 +486,7 @@ paths:
   # ── PATIENTS ──────────────────────────────────────────
   /patients/me:
     get:
-      tags: [Patients]
+      tags: [ Patients ]
       summary: Get the logged-in patient's own profile
       responses:
         "200":
@@ -408,7 +497,7 @@ paths:
 
   /patients/{patientId}:
     get:
-      tags: [Patients]
+      tags: [ Patients ]
       summary: Get a patient's demographics (requires active access grant)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -424,7 +513,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
     patch:
-      tags: [Patients]
+      tags: [ Patients ]
       summary: Update a patient's demographics (self, or doctor with access)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -448,7 +537,7 @@ paths:
   # ── ACCESS CONTROL ────────────────────────────────────
   /patients/{patientId}/organization-access:
     get:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: List organizations with access to this patient's record
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -461,7 +550,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/OrganizationAccess" }
     post:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: Patient grants an organization access
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -471,7 +560,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [organization_id]
+              required: [ organization_id ]
               properties:
                 organization_id: { type: string, format: uuid }
       responses:
@@ -483,7 +572,7 @@ paths:
 
   /patients/{patientId}/organization-access/{accessId}/revoke:
     post:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: Patient revokes an organization's access
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -500,7 +589,7 @@ paths:
 
   /patients/{patientId}/practitioner-access:
     get:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: List practitioners with access to this patient (admin only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -513,7 +602,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/PractitionerAccess" }
     post:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: Admin grants a doctor access to a patient
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -523,7 +612,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [practitioner_id]
+              required: [ practitioner_id ]
               properties:
                 practitioner_id: { type: string, format: uuid }
       responses:
@@ -535,7 +624,7 @@ paths:
 
   /patients/{patientId}/practitioner-access/{accessId}/revoke:
     post:
-      tags: [Access Control]
+      tags: [ Access Control ]
       summary: Admin revokes a doctor's access to a patient
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -553,7 +642,7 @@ paths:
   # ── EPISODES ──────────────────────────────────────────
   /patients/{patientId}/episodes:
     get:
-      tags: [Episodes]
+      tags: [ Episodes ]
       summary: List a patient's care episodes
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -566,7 +655,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/Episode" }
     post:
-      tags: [Episodes]
+      tags: [ Episodes ]
       summary: Open a new episode (doctor only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -576,7 +665,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [label]
+              required: [ label ]
               properties:
                 label: { type: string }
       responses:
@@ -588,7 +677,7 @@ paths:
 
   /episodes/{episodeId}/close:
     post:
-      tags: [Episodes]
+      tags: [ Episodes ]
       summary: Close an episode (doctor only)
       parameters:
         - name: episodeId
@@ -605,15 +694,27 @@ paths:
   # ── PATIENT SUMMARIES ─────────────────────────────────
   /patients/{patientId}/summaries:
     get:
-      tags: [Patient Summaries]
-      summary: List a patient's summaries (medical history, meds, allergies, etc). Admins get view-only.
+      tags: [ Patient Summaries ]
+      summary: List a patient's summaries (medical history, meds, allergies, etc).
+        Admins get view-only.
       parameters:
         - $ref: "#/components/parameters/patientId"
         - name: category
           in: query
           schema:
             type: string
-            enum: [problem_list, medications, allergies, vaccinations, preferences, lifestyle, family_history, social_situation, care_plan]
+            enum:
+              [
+                problem_list,
+                medications,
+                allergies,
+                vaccinations,
+                preferences,
+                lifestyle,
+                family_history,
+                social_situation,
+                care_plan
+              ]
       responses:
         "200":
           description: OK
@@ -623,7 +724,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/PatientSummary" }
     post:
-      tags: [Patient Summaries]
+      tags: [ Patient Summaries ]
       summary: Create a summary (doctor only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -646,7 +747,7 @@ paths:
 
   /summaries/{summaryId}:
     patch:
-      tags: [Patient Summaries]
+      tags: [ Patient Summaries ]
       summary: Update a summary in place (doctor only). Old version saved automatically.
       parameters:
         - name: summaryId
@@ -670,7 +771,7 @@ paths:
 
   /summaries/{summaryId}/versions:
     get:
-      tags: [Patient Summaries]
+      tags: [ Patient Summaries ]
       summary: Get the version history of a summary
       parameters:
         - name: summaryId
@@ -695,7 +796,7 @@ paths:
   # ── CLINICAL ENTRIES ──────────────────────────────────
   /patients/{patientId}/clinical-entries:
     get:
-      tags: [Clinical Entries]
+      tags: [ Clinical Entries ]
       summary: List a patient's clinical entries (vitals, notes, labs, radiology)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -703,7 +804,16 @@ paths:
           in: query
           schema:
             type: string
-            enum: [observation, order, procedure, lab_result, radiology, vital_signs, progress_note]
+            enum:
+              [
+                observation,
+                order,
+                procedure,
+                lab_result,
+                radiology,
+                vital_signs,
+                progress_note
+              ]
         - name: episode_id
           in: query
           schema: { type: string, format: uuid }
@@ -716,7 +826,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/ClinicalEntry" }
     post:
-      tags: [Clinical Entries]
+      tags: [ Clinical Entries ]
       summary: Record a new clinical entry (doctor or nurse only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -735,7 +845,7 @@ paths:
   # ── CONSENT FORMS ─────────────────────────────────────
   /patients/{patientId}/consent-forms:
     get:
-      tags: [Consent Forms]
+      tags: [ Consent Forms ]
       summary: List a patient's signed consent forms
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -748,7 +858,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/ConsentForm" }
     post:
-      tags: [Consent Forms]
+      tags: [ Consent Forms ]
       summary: Record a signed consent form (doctor only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -767,7 +877,7 @@ paths:
   # ── APPOINTMENTS ──────────────────────────────────────
   /patients/{patientId}/appointments:
     get:
-      tags: [Appointments]
+      tags: [ Appointments ]
       summary: List a patient's appointments
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -780,7 +890,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/Appointment" }
     post:
-      tags: [Appointments]
+      tags: [ Appointments ]
       summary: Schedule an appointment (admin only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -798,7 +908,7 @@ paths:
 
   /appointments/{appointmentId}/check-in:
     post:
-      tags: [Appointments]
+      tags: [ Appointments ]
       summary: Check a patient in (admin only)
       parameters:
         - name: appointmentId
@@ -815,7 +925,7 @@ paths:
   # ── BILLING ───────────────────────────────────────────
   /patients/{patientId}/invoices:
     get:
-      tags: [Billing]
+      tags: [ Billing ]
       summary: List a patient's invoices (admin only, doctors get 403)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -833,7 +943,7 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
     post:
-      tags: [Billing]
+      tags: [ Billing ]
       summary: Create an invoice (admin only)
       parameters:
         - $ref: "#/components/parameters/patientId"
@@ -851,7 +961,7 @@ paths:
 
   /invoices/{invoiceId}/payments:
     post:
-      tags: [Billing]
+      tags: [ Billing ]
       summary: Record a payment against an invoice (admin only)
       parameters:
         - name: invoiceId
@@ -871,9 +981,69 @@ paths:
               schema: { $ref: "#/components/schemas/Payment" }
 
   # ── ORGANIZATIONS & STAFF ─────────────────────────────
+
+  /organizations/{organizationId}/admins:
+    get:
+      tags: [ Organizations ]
+      summary: List an organization's admins
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Admin" }
+    post:
+      tags: [ Organizations ]
+      summary: Admin adds a new admin (starts as pending)
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ name, email, password ]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Admin" }
+
+  /admins/{adminId}/approve:
+    post:
+      tags: [ Organizations ]
+      summary: Admin approves a pending admin
+      parameters:
+        - name: adminId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Admin" }
+
   /organizations/{organizationId}/practitioners:
     get:
-      tags: [Organizations]
+      tags: [ Organizations ]
       summary: List an organization's practitioners
       parameters:
         - name: organizationId
@@ -889,7 +1059,7 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/Practitioner" }
     post:
-      tags: [Organizations]
+      tags: [ Organizations ]
       summary: Admin adds a new practitioner (starts as pending)
       parameters:
         - name: organizationId
@@ -902,7 +1072,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, email, password]
+              required: [ name, email, password ]
               properties:
                 name: { type: string }
                 email: { type: string, format: email }
@@ -916,7 +1086,7 @@ paths:
 
   /practitioners/{practitionerId}/approve:
     post:
-      tags: [Organizations]
+      tags: [ Organizations ]
       summary: Admin approves a pending practitioner
       parameters:
         - name: practitionerId
@@ -933,7 +1103,7 @@ paths:
   # ── PLATFORM ADMIN ────────────────────────────────────
   /platform/organizations:
     get:
-      tags: [Platform Admin]
+      tags: [ Platform Admin ]
       summary: List all organizations, any status (platform admin only)
       responses:
         "200":
@@ -946,7 +1116,7 @@ paths:
 
   /platform/organizations/{organizationId}/verify:
     post:
-      tags: [Platform Admin]
+      tags: [ Platform Admin ]
       summary: Verify a provider organization's CAC number
       parameters:
         - name: organizationId
@@ -962,7 +1132,7 @@ paths:
 
   /platform/organizations/{organizationId}/suspend:
     post:
-      tags: [Platform Admin]
+      tags: [ Platform Admin ]
       summary: Suspend a provider organization
       parameters:
         - name: organizationId
@@ -979,13 +1149,13 @@ paths:
   # ── AUDIT LOGS ────────────────────────────────────────
   /audit-logs:
     get:
-      tags: [Audit]
+      tags: [ Audit ]
       summary: Search audit logs (platform admin, or org admin scoped to their org)
       parameters:
         - name: target_table
           in: query
           schema: { type: string }
-        - name: actor_id
+        - name: user_id
           in: query
           schema: { type: string, format: uuid }
       responses:

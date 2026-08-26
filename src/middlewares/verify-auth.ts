@@ -15,7 +15,7 @@ export async function verifyAuthentication(
     ? authHeader.split(" ")[1]
     : null;
 
-  const accessToken = req.cookies?.accessToken || token;
+  const accessToken = token || req.cookies?.accessToken;
   if (!accessToken) {
     return next(ApiError.unauthorized("Missing access token"));
   }
@@ -43,7 +43,10 @@ export async function verifyAuthentication(
       return next(ApiError.unauthorized("Session expired"));
     }
 
-    req.user = decoded;
+    req.user = {
+      ...decoded,
+      id: decoded._id
+    };
     return next();
   } catch (err: any) {
     if (err.name === "TokenExpiredError") {

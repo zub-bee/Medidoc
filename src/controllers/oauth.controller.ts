@@ -45,7 +45,6 @@ export const githubOAuth = AsyncHandler(
         id: existingUser.id,
         name: existingUser.name,
         email: existingUser.email,
-        role: existingUser.role,
         avatar: existingUser.avatar,
         isEmailVerified: existingUser.isEmailVerified,
         lastLoginAt: existingUser.lastLoginAt,
@@ -86,12 +85,13 @@ export const googleOAuth = AsyncHandler(
       }
     });
 
+    // TODO: role must be gotten before sign in is successful
+
     ApiResponse.ok(res, "Signin Successfull", {
       user: {
         id: existingUser.id,
         name: existingUser.name,
         email: existingUser.email,
-        role: existingUser.role,
         avatar: existingUser.avatar,
         isEmailVerified: existingUser.isEmailVerified,
         lastLoginAt: existingUser.lastLoginAt,

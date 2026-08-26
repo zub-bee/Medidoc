@@ -22,7 +22,6 @@ export interface IUser {
   name: string;
   email: string;
   password?: string;
-  role: "patient" | "admin" | "provider" | "platform_admin" | "practitioner";
   isEmailVerified: boolean;
   lastLoginAt?: Date;
   failedLoginAttempts: number;
@@ -36,6 +35,9 @@ export interface IUser {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export type UserRole =
+  "patient" | "admin" | "provider" | "practitioner" | "platform";
 
 export type RefreshTokenData = {
   userId: string;

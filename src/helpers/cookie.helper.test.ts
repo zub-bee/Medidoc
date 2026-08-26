@@ -1,8 +1,10 @@
+/// <reference types="node" />
+
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("mvc cookie helper clears refreshToken using the refresh-token path", async () => {
+test("mvc cookie helper clears refreshToken using the refresh path", async () => {
   const helperSource = await readFile(
     new URL("./cookie.helper.ts", import.meta.url),
     "utf8"
@@ -10,7 +12,7 @@ test("mvc cookie helper clears refreshToken using the refresh-token path", async
 
   assert.match(
     helperSource,
-    /clearCookie\(res, "refreshToken", "\/api\/v1\/auth\/refresh-token"\)/
+    /clearCookie\(res, "refreshToken", "\/api\/v1\/auth\/refresh"\)/
   );
   assert.match(
     helperSource,

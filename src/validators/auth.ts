@@ -1,5 +1,8 @@
 import * as z from "zod";
 import { OTP_TYPES } from "../constants/auth";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+
+extendZodWithOpenApi(z);
 
 export const nameSchema = z
   .string({ error: "Name must be a string" })
@@ -24,26 +27,31 @@ export const emailSchema = z
   .email({ message: "Please enter a valid email address." })
   .max(100, { message: "Email must be no more than 100 characters." });
 
-export const roleSchema = z
-  .enum(["user", "admin"], {
-    error: "Role must be either applicant, recruiter, or admin"
-  })
-  .default("user");
+export const roleSchema = z.enum(
+  ["patient", "admin", "provider", "platform", "practitioner"],
+  {
+    error: "Role must be either patient, provider, practitioner or admin"
+  }
+);
 
 export const SigninSchema = z.object({
   email: emailSchema,
   password: z.string({ error: "Password must be a string" }).min(1, {
     message: "Password is required"
+  }),
+  role: z.enum(["admin", "platform", "provider", "practitioner", "patient"], {
+    error:
+      "Role must be either admin, patient, provider, practitioner or platform"
   })
 });
 
+// archive
 export const SignupSchema = z
   .object({
     name: nameSchema,
     email: emailSchema,
     password: passwordSchema,
-    confirmPassword: passwordSchema,
-    role: roleSchema
+    confirmPassword: passwordSchema
   })
   .refine(
     data => {
@@ -57,24 +65,28 @@ export const SignupSchema = z
 
 export const RequestOtpSchema = z.object({
   email: emailSchema,
-  otpType: z.enum(OTP_TYPES, { error: "Invalid otp type" })
+  otp_type: z.enum(OTP_TYPES, { error: "Invalid otp type" })
 });
 
 export const VerifyOtpSchema = z.object({
-  otpCode: z.string().min(6, "Please enter a valid OTP"),
-  email: emailSchema
+  email: emailSchema,
+  role: z.enum(["admin", "platform", "provider", "practitioner", "patient"], {
+    error:
+      "Role must be either admin, patient, provider, practitioner or platform"
+  }),
+  code: z.string().min(6, "Please enter a valid OTP")
 });
 
 export const ResetPasswordSchema = z.object({
   email: emailSchema,
-  newPassword: passwordSchema
+  new_password: passwordSchema
 });
 
 export const ChangePasswordSchema = z.object({
-  oldPassword: z.string({ error: "Password must be a string" }).min(1, {
+  old_password: z.string({ error: "Password must be a string" }).min(1, {
     message: "Old password is required"
   }),
-  newPassword: passwordSchema
+  new_password: passwordSchema
 });
 
 export const UpdateProfileSchema = z.object({
@@ -86,7 +98,7 @@ export const GoogleSigninSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   provider: z.enum(["google", "github"]).default("google"),
-  providerId: z.string({ error: "Provider id must be a string" }).min(1, {
+  provider_id: z.string({ error: "Provider id must be a string" }).min(1, {
     message: "Provider id is required"
   }),
   avatar: z.string().optional(),
@@ -94,13 +106,66 @@ export const GoogleSigninSchema = z.object({
 });
 
 export const DeleteAccountSchema = z.object({
-  userId: z.string({ error: "User id must be a string" }).min(1, {
+  user_id: z.string({ error: "User id must be a string" }).min(1, {
     message: "User id is required"
   }),
   type: z
     .enum(["soft", "hard"], { error: "Type must be either soft or hard" })
     .default("soft")
 });
+
+export const RegisterPatientSchema = z
+  .object({
+    name: nameSchema,
+    dob: z.iso.date(),
+    phone: z.string().min(1, "Phone number is required"),
+    nin: z.string().length(11, "NIN must be exactly 11 characters"),
+    email: emailSchema,
+    password: passwordSchema,
+    confirm_password: passwordSchema,
+    gender: z.enum(["female", "male"]),
+    address: z.string().optional()
+  })
+  .refine(data => data.password === data.confirm_password, {
+    message: "Passwords do not match",
+    path: ["confirm_password"]
+  });
+
+export const RegisterOrganizationSchema = z.object({
+  name: z.string().min(1, "Organization name is required"),
+  cac_number: z.string().min(1, "CAC number is required"),
+  email: emailSchema,
+  password: passwordSchema
+});
+
+export const VerifySchema = z.object({
+  role: z.enum(["patient", "provider", "platform", "practitioner", "admin"]),
+  user_id: z.string().min(1, "Actor id is required"),
+  code: z.string().min(1, "Verification code is required")
+});
+
+export const LoginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  role: z.enum(["patient", "practitioner", "admin", "platform", "provider"])
+});
+
+export const RefreshSchema = z.object({
+  refresh_token: z.string().min(1)
+});
+
+export const LogoutSchema = z.object({
+  refresh_token: z.string().min(1)
+});
+
+export type RegisterPatientType = z.infer<typeof RegisterPatientSchema>;
+export type RegisterOrganizationType = z.infer<
+  typeof RegisterOrganizationSchema
+>;
+export type VerifyType = z.infer<typeof VerifySchema>;
+export type LoginType = z.infer<typeof LoginSchema>;
+export type RefreshType = z.infer<typeof RefreshSchema>;
+export type LogoutType = z.infer<typeof LogoutSchema>;
 
 export type SignupUserType = z.infer<typeof SignupSchema>;
 export type SigninUserType = z.infer<typeof SigninSchema>;
