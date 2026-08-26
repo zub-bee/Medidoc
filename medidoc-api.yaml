@@ -284,13 +284,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, cac_number, admin_email, admin_password, admin_name]
+              required: [name, cac_number, email, password ]
               properties:
                 name: { type: string }
                 cac_number: { type: string }
-                admin_name: { type: string }
-                admin_email: { type: string, format: email }
-                admin_password: { type: string, format: password }
+                email: { type: string, format: email }
+                password: { type: string, format: password }
       responses:
         "201":
           description: Organization and first admin created, status pending
