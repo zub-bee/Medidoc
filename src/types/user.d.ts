@@ -36,6 +36,9 @@ export interface IUser {
   updatedAt: Date;
 }
 
+export type UserRole =
+  "patient" | "admin" | "provider" | "practitioner" | "platform";
+
 export type RefreshTokenData = {
   userId: string;
   tokenHash: string;
