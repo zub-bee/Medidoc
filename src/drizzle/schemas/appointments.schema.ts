@@ -3,6 +3,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { patients } from "./patients.schema";
 import { providers } from "./providers.schema";
 import { practitioners } from "./practitioners.schema";
+import { admins } from "./admins.schema";
 
 export const appointments = pgTable("appointments", {
   id: text("id")
@@ -21,7 +22,7 @@ export const appointments = pgTable("appointments", {
   status: text("status", {
     enum: ["scheduled", "checked_in", "completed", "cancelled"]
   }).notNull(),
-  checkedInBy: text("checked_in_by"),
+  checkedInBy: text("checked_in_by").references(() => admins.id),
   checkedInAt: timestamp("checked_in_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
