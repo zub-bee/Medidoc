@@ -1,6 +1,7 @@
 import { NextFunction } from "express";
 import db from "../configs/db";
 import { users } from "../drizzle/schemas/user.schema";
+import { patients } from "../drizzle/schemas/patients.schema";
 import { eq } from "drizzle-orm";
 import { ApiError } from "../utils/api-error";
 import { hashPassword, verifyPassword } from "../helpers/auth.helpers";
@@ -128,10 +129,10 @@ export class AuthService {
   }
 
   static async registerPatientUser(
-    user: Pick<RegisterPatientType, "name" | "email" | "password">
+    user: Omit<RegisterPatientType, "confirm_password">
   ) {
     try {
-      const { name, email, password } = user;
+      const { name, email, password, dob, gender, address, phone, nin } = user;
       const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email)
       });
@@ -160,7 +161,8 @@ export class AuthService {
       const userData = JSON.stringify({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        patient: { dob, gender, address, phone, nin }
       });
 
       await OtpService.sendOtp({
@@ -281,8 +283,8 @@ export class AuthService {
     }
   }
 
-  static async verifyUser({ email, otpCode }: VerifyOtpType) {
-    const hashCode = generateHashedToken(otpCode);
+  static async verifyUser({ email, code }: VerifyOtpType) {
+    const hashCode = generateHashedToken(code);
 
     await OtpService.verifyOtp(hashCode, email);
 
@@ -292,17 +294,45 @@ export class AuthService {
       throw ApiError.badRequest("Invalid or expired otp");
     }
 
-    const { name, email: userEmail, password } = JSON.parse(userData);
+    const {
+      name,
+      email: userEmail,
+      password,
+      patient
+    } = JSON.parse(userData) as {
+      name: string;
+      email: string;
+      password: string;
+      patient?: {
+        dob: string;
+        gender: "female" | "male";
+        address?: string;
+        phone: string;
+        nin: string;
+      };
+    };
 
-    const [user] = await db
-      .insert(users)
-      .values({
-        name,
-        email: userEmail,
-        password,
-        isEmailVerified: true
-      })
-      .returning();
+    const user = await db.transaction(async tx => {
+      const [createdUser] = await tx
+        .insert(users)
+        .values({
+          name,
+          email: userEmail,
+          password,
+          isEmailVerified: true
+        })
+        .returning();
+
+      if (patient) {
+        await tx.insert(patients).values({
+          fullName: name,
+          email: userEmail,
+          ...patient
+        });
+      }
+
+      return createdUser;
+    });
 
     await redisClient.del(`user:${email}:${hashCode}`);
     await redisClient.del(`user:pending:${email}`);
@@ -382,6 +412,7 @@ export class AuthService {
       await AuthService.handleToken(
         {
           _id: user.id,
+          role,
           ip,
           userAgent
         },
@@ -403,7 +434,7 @@ export class AuthService {
   }
 
   static async handleToken(
-    user: { _id: string } & {
+    user: { _id: string; role: string } & {
       ip: string;
       userAgent: string;
     },
@@ -413,6 +444,7 @@ export class AuthService {
 
     const accessToken = generateAccessToken({
       _id: user._id,
+      role,
       sessionId
     });
 
