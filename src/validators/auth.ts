@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { OTP_TYPES } from "../constants/auth";
+import { id } from "zod/v4/locales";
 
 export const nameSchema = z
   .string({ error: "Name must be a string" })
@@ -61,8 +62,15 @@ export const RequestOtpSchema = z.object({
 });
 
 export const VerifyOtpSchema = z.object({
-  otpCode: z.string().min(6, "Please enter a valid OTP"),
-  email: emailSchema
+  email: emailSchema,
+  role: z.enum(["admin", "platform", "provider", "practitioner", "patient"], {
+    error:
+      "Role must be either admin, patient, provider, practitioner or platform"
+  }),
+  code: z.string().min(6, "Please enter a valid OTP"),
+  user_id: z.string({ error: "User id must be a string" }).min(1, {
+    message: "User id is required"
+  })
 });
 
 export const ResetPasswordSchema = z.object({
@@ -94,7 +102,7 @@ export const GoogleSigninSchema = z.object({
 });
 
 export const DeleteAccountSchema = z.object({
-  userId: z.string({ error: "User id must be a string" }).min(1, {
+  user_id: z.string({ error: "User id must be a string" }).min(1, {
     message: "User id is required"
   }),
   type: z
@@ -127,15 +135,15 @@ export const RegisterOrganizationSchema = z.object({
 });
 
 export const VerifySchema = z.object({
-  actor_type: z.enum(["patient", "provider"]),
-  actor_id: z.string().min(1, "Actor id is required"),
+  role: z.enum(["patient", "provider", "platform", "practitioner", "admin"]),
+  user_id: z.string().min(1, "Actor id is required"),
   code: z.string().min(1, "Verification code is required")
 });
 
 export const LoginSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  actor_type: z.enum(["patient", "practitioner", "admin", "platform"])
+  role: z.enum(["patient", "practitioner", "admin", "platform", "provider"])
 });
 
 export const RefreshSchema = z.object({
