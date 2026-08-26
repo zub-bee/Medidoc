@@ -7,6 +7,7 @@
     "dev": "cross-env NODE_ENV=development npx tsx watch --clearScreen=false src/server.ts",
     "build": "rm -rf dist && tsc && tsc-alias",
     "start": "cross-env NODE_ENV=production node dist/server.js",
+    "seed": "tsx src/seed/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
