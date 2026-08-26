@@ -156,8 +156,8 @@ export class AuthService {
 
       const hashedPassword = await hashPassword(password);
 
-      await OtpService.checkOtpRestrictions(email);
-      await OtpService.trackOtpRequests(email);
+      await OtpService.checkOtpRestrictions(email); // otp service should be with number as well instead of just email
+      await OtpService.trackOtpRequests(email); // phone will be included as a parameter once otpservice is wired
 
       const { code, hashCode } = generateOTP(OTP_CODE_LENGTH);
 
@@ -299,6 +299,7 @@ export class AuthService {
       throw ApiError.badRequest("Invalid or expired otp");
     }
 
+    // for patient
     const {
       name,
       email: userEmail,
@@ -317,6 +318,8 @@ export class AuthService {
       };
     };
 
+    // for organization
+
     const user = await db.transaction(async tx => {
       const [createdUser] = await tx
         .insert(users)
@@ -330,11 +333,19 @@ export class AuthService {
         .returning();
 
       if (patient) {
-        await tx.insert(patients).values({
-          fullName: name,
-          email: userEmail,
-          ...patient
-        });
+        try {
+          await tx.insert(patients).values({
+            fullName: name,
+            email: userEmail,
+            ...patient
+          });
+        } catch (error) {
+          logger.error(
+            { error, userEmail, name },
+            "Failed to create patient profile"
+          );
+          throw ApiError.server("Failed to create patient profile");
+        }
       }
 
       return createdUser;
