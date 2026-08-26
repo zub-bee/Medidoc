@@ -276,7 +276,7 @@ registry.registerPath({
   path: "/api/v1/auth/profile",
   tags: ["Auth"],
   summary: "Fetch the currently signed-in user profile",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   responses: {
     200: {
       description: "Profile fetched",
@@ -294,7 +294,7 @@ registry.registerPath({
   path: "/api/v1/auth/profile",
   tags: ["Auth"],
   summary: "Update the signed-in user profile",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   request: {
     body: {
       required: true,
@@ -322,6 +322,7 @@ registry.registerPath({
   path: "/api/v1/auth/refresh",
   tags: ["Auth"],
   summary: "Refresh access and refresh tokens",
+  security: [{ refreshTokenCookie: [] }],
   request: {
     body: {
       required: false,
@@ -430,7 +431,7 @@ registry.registerPath({
   path: "/api/v1/auth/change-password",
   tags: ["Auth"],
   summary: "Change password",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   request: {
     body: {
       required: true,
@@ -458,7 +459,7 @@ registry.registerPath({
   path: "/api/v1/auth/account/request-delete",
   tags: ["Auth"],
   summary: "Request account deletion",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   request: {
     body: {
       required: true,
@@ -486,7 +487,7 @@ registry.registerPath({
   path: "/api/v1/auth/account/delete",
   tags: ["Auth"],
   summary: "Delete account",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   request: {
     body: {
       required: true,
@@ -514,7 +515,7 @@ registry.registerPath({
   path: "/api/v1/auth/sessions/{sessionId}",
   tags: ["Auth"],
   summary: "Delete a specific session",
-  security: [{ bearerAuth: [] }],
+  security: [{ bearerAuth: [] }, { accessTokenCookie: [] }],
   request: {
     params: z.object({
       sessionId: z.string().min(1)
@@ -582,7 +583,7 @@ registry.registerPath({
 
 const generator = new OpenApiGeneratorV3(registry.definitions);
 
-export const swaggerDocument = generator.generateDocument({
+const generatedDocument = generator.generateDocument({
   openapi: "3.0.0",
   info: {
     title: "Medidoc API",
@@ -597,3 +598,30 @@ export const swaggerDocument = generator.generateDocument({
     }
   ]
 });
+
+export const swaggerDocument = {
+  ...generatedDocument,
+  components: {
+    ...generatedDocument.components,
+    securitySchemes: {
+      bearerAuth: {
+        type: "http" as const,
+        scheme: "bearer" as const,
+        bearerFormat: "JWT",
+        description: "Enter an access token"
+      },
+      accessTokenCookie: {
+        type: "apiKey" as const,
+        in: "cookie" as const,
+        name: "accessToken",
+        description: "Access token stored in the accessToken cookie"
+      },
+      refreshTokenCookie: {
+        type: "apiKey" as const,
+        in: "cookie" as const,
+        name: "refreshToken",
+        description: "Refresh token stored in the refreshToken cookie"
+      }
+    }
+  }
+};
