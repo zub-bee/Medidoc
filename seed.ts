@@ -44,10 +44,23 @@ async function main() {
   });
 
   // ── Platform admin ─────────────────────────────────────
+  const platformUserId = id();
   await insert("platforms", {
     id: id(),
     name: "Chidi Okafor",
     email: "chidi@medidoc.platform",
+    created_at: now(),
+    updated_at: now(),
+  });
+
+  await insert("users", {
+    id: platformUserId,
+    name: "Chidi Okafor",
+    email: "chidi@medidoc.platform",
+    password: "hashed_password_placeholder",
+    role: "platform",
+    is_email_verified: true,
+    provider: "local",
     created_at: now(),
     updated_at: now(),
   });
@@ -60,6 +73,18 @@ async function main() {
     name: "Amaka Nwosu",
     email: "amaka@lagosgeneral.ng",
     status: "active",
+    created_at: daysAgo(180),
+    updated_at: daysAgo(180),
+  });
+
+  await insert("users", {
+    id: adminId,
+    name: "Amaka Nwosu",
+    email: "amaka@lagosgeneral.ng",
+    password: "hashed_password_placeholder",
+    role: "admin",
+    is_email_verified: true,
+    provider: "local",
     created_at: daysAgo(180),
     updated_at: daysAgo(180),
   });
@@ -77,6 +102,18 @@ async function main() {
     updated_at: daysAgo(150),
   });
 
+  await insert("users", {
+    id: doctorId,
+    name: "Dr. Funmi Adeyemi",
+    email: "funmi.adeyemi@lagosgeneral.ng",
+    password: "hashed_password_placeholder",
+    role: "practitioner",
+    is_email_verified: true,
+    provider: "local",
+    created_at: daysAgo(150),
+    updated_at: daysAgo(150),
+  });
+
   const nurseId = id();
   await insert("practitioners", {
     id: nurseId,
@@ -85,6 +122,18 @@ async function main() {
     email: "ijeoma.bello@lagosgeneral.ng",
     approved_by: orgId,
     status: "active",
+    created_at: daysAgo(150),
+    updated_at: daysAgo(150),
+  });
+
+  await insert("users", {
+    id: nurseId,
+    name: "Nurse Ijeoma Bello",
+    email: "ijeoma.bello@lagosgeneral.ng",
+    password: "hashed_password_placeholder",
+    role: "practitioner",
+    is_email_verified: true,
+    provider: "local",
     created_at: daysAgo(150),
     updated_at: daysAgo(150),
   });
@@ -100,6 +149,18 @@ async function main() {
     phone: "+2348012345678",
     nin: "12345678901",
     email: "tunde.bakare@example.com",
+    created_at: daysAgo(120),
+    updated_at: daysAgo(120),
+  });
+
+  await insert("users", {
+    id: patientId,
+    name: "Tunde Bakare",
+    email: "tunde.bakare@example.com",
+    password: "hashed_password_placeholder",
+    role: "patient",
+    is_email_verified: true,
+    provider: "local",
     created_at: daysAgo(120),
     updated_at: daysAgo(120),
   });
