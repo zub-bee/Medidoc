@@ -1,6 +1,8 @@
 export const OTP_MAX_ATTEMPTS = 5;
 
 export const OTP_TYPES = [
+  "cac-verification",
+  "nin-verification",
   "signin",
   "email-verification",
   "password-reset",
