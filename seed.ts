@@ -33,21 +33,23 @@ async function main() {
 
   // ── Provider organization ──────────────────────────────
   const orgId = id();
-  await insert("provider_organizations", {
+  await insert("providers", {
     id: orgId,
     name: "Lagos General Hospital",
     cac_number: "RC1234567",
     status: "verified",
     verified_at: daysAgo(200),
     created_at: daysAgo(200),
+    updated_at: daysAgo(200),
   });
 
   // ── Platform admin ─────────────────────────────────────
-  await insert("platform_admins", {
+  await insert("platforms", {
     id: id(),
-    full_name: "Chidi Okafor",
+    name: "Chidi Okafor",
     email: "chidi@medidoc.platform",
-    password_hash: "hashed_password_placeholder",
+    created_at: now(),
+    updated_at: now(),
   });
 
   // ── Org admins (billing, check-in — no medical access) ─
@@ -55,11 +57,11 @@ async function main() {
   await insert("admins", {
     id: adminId,
     organization_id: orgId,
-    full_name: "Amaka Nwosu",
+    name: "Amaka Nwosu",
     email: "amaka@lagosgeneral.ng",
-    password_hash: "hashed_password_placeholder",
     status: "active",
     created_at: daysAgo(180),
+    updated_at: daysAgo(180),
   });
 
   // ── Practitioners (doctors — medical access only) ──────
@@ -67,39 +69,39 @@ async function main() {
   await insert("practitioners", {
     id: doctorId,
     organization_id: orgId,
-    full_name: "Dr. Funmi Adeyemi",
+    name: "Dr. Funmi Adeyemi",
     email: "funmi.adeyemi@lagosgeneral.ng",
-    password_hash: "hashed_password_placeholder",
-    approved_by: adminId,
+    approved_by: orgId,
     status: "active",
     created_at: daysAgo(150),
+    updated_at: daysAgo(150),
   });
 
   const nurseId = id();
   await insert("practitioners", {
     id: nurseId,
     organization_id: orgId,
-    full_name: "Nurse Ijeoma Bello",
+    name: "Nurse Ijeoma Bello",
     email: "ijeoma.bello@lagosgeneral.ng",
-    password_hash: "hashed_password_placeholder",
-    approved_by: adminId,
+    approved_by: orgId,
     status: "active",
     created_at: daysAgo(150),
+    updated_at: daysAgo(150),
   });
 
   // ── Patient (demographics) ─────────────────────────────
   const patientId = id();
   await insert("patients", {
     id: patientId,
-    full_name: "Tunde Bakare",
+    name: "Tunde Bakare",
     dob: "1990-04-12",
     gender: "male",
     address: "14 Adeola Odeku Street, Victoria Island, Lagos",
     phone: "+2348012345678",
     nin: "12345678901",
     email: "tunde.bakare@example.com",
-    password_hash: "hashed_password_placeholder",
     created_at: daysAgo(120),
+    updated_at: daysAgo(120),
   });
 
   // ── Access control ─────────────────────────────────────
@@ -116,7 +118,7 @@ async function main() {
     id: id(),
     practitioner_id: doctorId,
     patient_id: patientId,
-    granted_by: adminId,
+    granted_by: orgId,
     status: "active",
     granted_at: daysAgo(119),
     revoked_at: null,
@@ -126,7 +128,7 @@ async function main() {
     id: id(),
     practitioner_id: nurseId,
     patient_id: patientId,
-    granted_by: adminId,
+    granted_by: orgId,
     status: "active",
     granted_at: daysAgo(119),
     revoked_at: null,
@@ -320,9 +322,14 @@ async function main() {
     practitioner_id: doctorId,
     organization_id: orgId,
     procedure_name: "Appendectomy",
-    document_url: "https://storage.example.com/consent/tunde-bakare-appendectomy.pdf",
+    document: JSON.stringify({
+      public_id: "consent/tunde-bakare-appendectomy",
+      url: "https://storage.example.com/consent/tunde-bakare-appendectomy.pdf",
+      size: 45000
+    }),
     signed_at: daysAgo(30),
     created_at: daysAgo(30),
+    updated_at: daysAgo(30),
   });
 
   // ── Appointment, invoice, payment ──────────────────────
@@ -367,59 +374,64 @@ async function main() {
   // Store only the hash. Never store the raw token.
   await insert("refresh_tokens", {
     id: id(),
-    actor_type: "patient",
+    role: "patient",
     actor_id: patientId,
     token_hash: "hashed_refresh_token_placeholder_1",
     status: "active",
     expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     created_at: now(),
+    updated_at: now(),
     revoked_at: null,
   });
 
   await insert("refresh_tokens", {
     id: id(),
-    actor_type: "practitioner",
+    role: "practitioner",
     actor_id: doctorId,
     token_hash: "hashed_refresh_token_placeholder_2",
     status: "active",
     expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     created_at: now(),
+    updated_at: now(),
     revoked_at: null,
   });
 
   // A revoked one, so you can see that path too
   await insert("refresh_tokens", {
     id: id(),
-    actor_type: "admin",
+    role: "admin",
     actor_id: adminId,
     token_hash: "hashed_refresh_token_placeholder_3",
     status: "revoked",
     expires_at: daysAgo(-5),
     created_at: daysAgo(20),
+    updated_at: daysAgo(15),
     revoked_at: daysAgo(15),
   });
 
   // ── Verification codes (NIN, CAC, email) ───────────────
   await insert("verification_codes", {
     id: id(),
-    actor_type: "patient",
+    role: "patient",
     actor_id: patientId,
     code_hash: "hashed_code_placeholder_1",
     purpose: "nin_verification",
     expires_at: daysAgo(119),
     used_at: daysAgo(120),
     created_at: daysAgo(120),
+    updated_at: daysAgo(120),
   });
 
   await insert("verification_codes", {
     id: id(),
-    actor_type: "provider_organization",
+    role: "provider",
     actor_id: orgId,
     code_hash: "hashed_code_placeholder_2",
     purpose: "cac_verification",
     expires_at: daysAgo(199),
     used_at: daysAgo(200),
     created_at: daysAgo(200),
+    updated_at: daysAgo(200),
   });
 
   // ── Audit trail ─────────────────────────────────────────
@@ -431,6 +443,7 @@ async function main() {
     target_table: "patient_summaries",
     target_id: medsId,
     created_at: daysAgo(10),
+    updated_at: daysAgo(10),
   });
 
   console.log("Seeding finished.");
