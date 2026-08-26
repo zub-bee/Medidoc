@@ -39,6 +39,7 @@ export const SigninSchema = z.object({
   })
 });
 
+// archive
 export const SignupSchema = z
   .object({
     name: nameSchema,
@@ -58,7 +59,7 @@ export const SignupSchema = z
 
 export const RequestOtpSchema = z.object({
   email: emailSchema,
-  otpType: z.enum(OTP_TYPES, { error: "Invalid otp type" })
+  otp_type: z.enum(OTP_TYPES, { error: "Invalid otp type" })
 });
 
 export const VerifyOtpSchema = z.object({
@@ -75,14 +76,14 @@ export const VerifyOtpSchema = z.object({
 
 export const ResetPasswordSchema = z.object({
   email: emailSchema,
-  newPassword: passwordSchema
+  new_password: passwordSchema
 });
 
 export const ChangePasswordSchema = z.object({
-  oldPassword: z.string({ error: "Password must be a string" }).min(1, {
+  old_password: z.string({ error: "Password must be a string" }).min(1, {
     message: "Old password is required"
   }),
-  newPassword: passwordSchema
+  new_password: passwordSchema
 });
 
 export const UpdateProfileSchema = z.object({
@@ -94,7 +95,7 @@ export const GoogleSigninSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   provider: z.enum(["google", "github"]).default("google"),
-  providerId: z.string({ error: "Provider id must be a string" }).min(1, {
+  provider_id: z.string({ error: "Provider id must be a string" }).min(1, {
     message: "Provider id is required"
   }),
   avatar: z.string().optional(),

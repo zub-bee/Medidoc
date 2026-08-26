@@ -382,9 +382,9 @@ export const requestDeleteAccount = AsyncHandler(
 //? DELETE/DEACTIVATE ACCOUNT
 export const deleteAccount = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const { userId, type }: DeleteAccountType = req.body;
+    const { user_id, type }: DeleteAccountType = req.body;
 
-    if (!userId || !type) {
+    if (!user_id || !type) {
       return next(ApiError.badRequest("User id and type are required!"));
     }
 
@@ -402,13 +402,13 @@ export const deleteAccount = AsyncHandler(
       );
     }
 
-    if (userId !== reqUserId.toString()) {
+    if (user_id !== reqUserId.toString()) {
       return next(
         ApiError.unauthorized("You are not authorized to perform this action")
       );
     }
 
-    await AuthService.deleteOrDeactiveAccount({ userId, type, token });
+    await AuthService.deleteOrDeactiveAccount({ userId: user_id, type, token });
 
     clearAuthCookies(res);
 
