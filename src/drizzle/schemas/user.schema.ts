@@ -16,6 +16,9 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password"),
   isEmailVerified: boolean("is_email_verified").default(false).notNull(),
+  role: text("role", {
+    enum: ["provider", "practitioner", "patient", "platform", "admin"]
+  }).notNull(),
   lastLoginAt: timestamp("last_login_at"),
   failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
   lockUntil: timestamp("lock_until"),
