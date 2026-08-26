@@ -8,7 +8,7 @@ info:
     use the refresh endpoint to get a new one.
 
 servers:
-  - url: http://localhost:4000
+  - url: http://localhost:4000/api/v1
 
 security:
   - bearerAuth: []
@@ -249,7 +249,7 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, dob, phone, nin, email, password]
+              required: [name, dob, phone, nin, email, password, confirm_password]
               properties:
                 name: { type: string }
                 dob: { type: string, format: date }
@@ -259,6 +259,7 @@ paths:
                 nin: { type: string }
                 email: { type: string, format: email }
                 password: { type: string, format: password }
+                confirm_password: { type: string, format: password }
       responses:
         "201":
           description: Patient created. NIN verification code sent.
