@@ -427,7 +427,27 @@
         ]
       }
     },
-    "parameters": {}
+    "parameters": {},
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter an access token"
+      },
+      "accessTokenCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "accessToken",
+        "description": "Access token stored in the accessToken cookie"
+      },
+      "refreshTokenCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refreshToken",
+        "description": "Refresh token stored in the refreshToken cookie"
+      }
+    }
   },
   "paths": {
     "/api/v1/health": {
@@ -659,6 +679,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "responses": {
@@ -682,6 +705,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "requestBody": {
@@ -714,6 +740,11 @@
           "Auth"
         ],
         "summary": "Refresh access and refresh tokens",
+        "security": [
+          {
+            "refreshTokenCookie": []
+          }
+        ],
         "requestBody": {
           "required": false,
           "content": {
@@ -837,6 +868,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "requestBody": {
@@ -872,6 +906,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "requestBody": {
@@ -907,6 +944,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "requestBody": {
@@ -942,6 +982,9 @@
         "security": [
           {
             "bearerAuth": []
+          },
+          {
+            "accessTokenCookie": []
           }
         ],
         "parameters": [
