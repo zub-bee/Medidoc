@@ -122,9 +122,8 @@ export const RegisterPatientSchema = z
 export const RegisterOrganizationSchema = z.object({
   name: z.string().min(1, "Organization name is required"),
   cac_number: z.string().min(1, "CAC number is required"),
-  admin_email: emailSchema,
-  admin_password: passwordSchema,
-  admin_name: nameSchema
+  email: emailSchema,
+  password: passwordSchema
 });
 
 export const VerifySchema = z.object({

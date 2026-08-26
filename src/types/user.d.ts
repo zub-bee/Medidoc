@@ -22,7 +22,6 @@ export interface IUser {
   name: string;
   email: string;
   password?: string;
-  role: "patient" | "admin" | "provider" | "platform_admin" | "practitioner";
   isEmailVerified: boolean;
   lastLoginAt?: Date;
   failedLoginAttempts: number;

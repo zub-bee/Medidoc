@@ -4,10 +4,7 @@ import { AsyncHandler } from "../utils/async-handler";
 
 import { ApiError } from "../utils/api-error";
 import { AuthService } from "../services/auth.service";
-import {
-  clearAuthCookies,
-  setAuthCookies
-} from "../helpers/cookie.helper";
+import { clearAuthCookies, setAuthCookies } from "../helpers/cookie.helper";
 import { AvatarData, UserRequest } from "../types/user";
 import {
   deleteFileFromCloudinary,
@@ -21,7 +18,7 @@ import { eq } from "drizzle-orm";
 //? SIGNUP USER
 export const signupUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password) {
       return next(ApiError.badRequest("Name, email and password are required"));
     }
@@ -29,8 +26,52 @@ export const signupUser = AsyncHandler(
     await AuthService.registerUser({
       name,
       email,
-      password,
-      role
+      password
+    });
+
+    return ApiResponse.Success(
+      res,
+      "User registered successfully. Please check your email for verification."
+    );
+  }
+);
+
+export const signupPatientUser = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) {
+      return next(ApiError.badRequest("Name, email and password are required"));
+    }
+
+    await AuthService.registerPatientUser({
+      name,
+      email,
+      password
+    });
+
+    return ApiResponse.Success(
+      res,
+      "User registered successfully. Please check your email for verification."
+    );
+  }
+);
+
+export const signupOrganizationUser = AsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { name, cac_number, email, password } = req.body;
+    if (!name || !email || !cac_number || !password) {
+      return next(
+        ApiError.badRequest(
+          "Company name, email, CAC number and password are required"
+        )
+      );
+    }
+
+    await AuthService.registerOrganizationUser({
+      name,
+      cac_number,
+      email,
+      password
     });
 
     return ApiResponse.Success(
@@ -116,7 +157,6 @@ export const getUserProfile = AsyncHandler(
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
         avatar: user.avatar,
         isEmailVerified: user.isEmailVerified,
         lastLoginAt: user.lastLoginAt,
@@ -165,10 +205,7 @@ export const updateProfile = AsyncHandler(
       await db.update(users).set(updateData).where(eq(users.id, user.id));
     }
 
-    if (
-      avatar?.public_id &&
-      avatar.public_id !== updatedAvatar?.public_id
-    ) {
+    if (avatar?.public_id && avatar.public_id !== updatedAvatar?.public_id) {
       await deleteFileFromCloudinary([avatar.public_id]);
     }
 
@@ -179,7 +216,6 @@ export const updateProfile = AsyncHandler(
         id: updatedUser?.id,
         name: updatedUser?.name,
         email: updatedUser?.email,
-        role: updatedUser?.role,
         avatar: updatedUser?.avatar,
         isEmailVerified: updatedUser?.isEmailVerified,
         lastLoginAt: updatedUser?.lastLoginAt

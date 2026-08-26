@@ -73,8 +73,7 @@ test("registerUser cleans up pending signup state when redis persistence fails",
       AuthService.registerUser({
         name: "Test User",
         email,
-        password: "super-secret",
-        role: "user"
+        password: "super-secret"
       }),
     /Failed to register user/
   );
