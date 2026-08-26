@@ -52,8 +52,7 @@ router.post(
   "/signup",
   validateRequest(SignupSchema),
   signupRateLimiter,
-  signupUser,
-  authorizeUser
+  signupUser
 );
 
 router.post(
@@ -70,7 +69,7 @@ router.post(
   signupOrganizationUser
 );
 
-router.post("/verify-user", validateRequest(VerifyOtpSchema), verifyUser);
+router.post("/verify", validateRequest(VerifyOtpSchema), verifyUser);
 
 router.post(
   "/signin",

@@ -43,11 +43,7 @@ export const signupPatientUser = AsyncHandler(
       return next(ApiError.badRequest("Name, email and password are required"));
     }
 
-    await AuthService.registerPatientUser({
-      name,
-      email,
-      password
-    });
+    await AuthService.registerPatientUser(req.body);
 
     return ApiResponse.Success(
       res,
@@ -84,13 +80,15 @@ export const signupOrganizationUser = AsyncHandler(
 //? VERIFY USER
 export const verifyUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, otpCode }: VerifyOtpType = req.body;
+    const { role, code, user_id, email }: VerifyOtpType = req.body;
 
-    if (!email || !otpCode) {
-      return next(ApiError.badRequest("Email and code are required"));
+    if (!role || !code || !user_id || !email) {
+      return next(
+        ApiError.badRequest("Email, user id, role and code are required")
+      );
     }
 
-    await AuthService.verifyUser({ email, otpCode });
+    await AuthService.verifyUser({ email, code, user_id, role });
 
     return ApiResponse.ok(res, "User verified successfully");
   }
