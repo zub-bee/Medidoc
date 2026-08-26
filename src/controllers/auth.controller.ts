@@ -233,8 +233,8 @@ export const updateProfile = AsyncHandler(
 //? REFRESH TOKENS
 export const refreshToken = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const accessToken = req.cookies?.access_token;
-    const refreshToken = req.cookies?.refresh_token || req.body?.refresh_token;
+    const accessToken = req.cookies?.accessToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refresh_token;
 
     const token = await AuthService.refreshTokens(accessToken, refreshToken);
 
