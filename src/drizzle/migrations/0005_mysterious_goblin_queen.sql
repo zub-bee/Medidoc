@@ -1,0 +1,1 @@
+ALTER TABLE "appointments" ADD CONSTRAINT "appointments_checked_in_by_admins_id_fk" FOREIGN KEY ("checked_in_by") REFERENCES "public"."admins"("id") ON DELETE no action ON UPDATE no action;

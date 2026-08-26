@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787689213371,
+      "tag": "0000_low_mercury",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787694915258,
+      "tag": "0001_windy_forgotten_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787701568124,
+      "tag": "0002_military_christian_walker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787702063448,
+      "tag": "0003_round_robbie_robertson",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787702128426,
+      "tag": "0004_complex_franklin_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787702834027,
+      "tag": "0005_mysterious_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787742135630,
+      "tag": "0006_spicy_liz_osborn",
+      "breakpoints": true
+    }
+  ]
+}

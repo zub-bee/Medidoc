@@ -13,7 +13,6 @@ export interface UserRequest extends Request {
   user?: {
     _id?: string | undefined;
     id?: string | undefined;
-    role?: "user" | "admin" | undefined;
     sessionId?: string | undefined;
   };
 }
@@ -23,7 +22,7 @@ export interface IUser {
   name: string;
   email: string;
   password?: string;
-  role: "user" | "admin";
+  role: "patient" | "admin" | "provider" | "platform_admin" | "practitioner";
   isEmailVerified: boolean;
   lastLoginAt?: Date;
   failedLoginAttempts: number;

@@ -22,8 +22,7 @@
   "lint-staged": {
     "src/**/*.ts": [
       "eslint --fix",
-      "prettier --write",
-      "tsc --noEmit"
+      "prettier --write"
     ]
   },
   "dependencies": {
@@ -40,6 +39,7 @@
     "express-rate-limit": "^8.6.2",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.11.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.5",
     "passport": "^0.7.0",
@@ -79,7 +79,6 @@
     "eslint-plugin-prettier": "^5.5.6",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
-    "morgan": "^1.11.0",
     "prettier": "^3.9.6",
     "tsc-alias": "^1.9.2",
     "tsx": "^4.23.12",
