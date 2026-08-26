@@ -88,9 +88,17 @@ export const verifyUser = AsyncHandler(
       );
     }
 
-    await AuthService.verifyUser({ email, code, role });
+    const createdUser = await AuthService.verifyUser({ email, code, role });
 
-    return ApiResponse.ok(res, "User verified successfully");
+    return ApiResponse.ok(res, "User verified successfully", {
+      user: {
+        id: createdUser._id,
+        name: createdUser.name,
+        email: createdUser.email,
+        avatar: createdUser.avatar,
+        isEmailVerified: createdUser.isEmailVerified
+      }
+    });
   }
 );
 

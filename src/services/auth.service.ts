@@ -358,6 +358,7 @@ export class AuthService {
       _id: user.id,
       name,
       email,
+      avatar: user.avatar,
       isEmailVerified: true
     };
   }
