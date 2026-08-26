@@ -6,7 +6,7 @@ const doc = {
     description: "Medidoc API",
     version: "1.0.0"
   },
-  host: "localhost:3000/api",
+  host: "localhost:4000/api/v1",
   schemes: ["http"]
 };
 

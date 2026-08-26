@@ -5,7 +5,7 @@
     "description": "Medidoc API",
     "version": "1.0.0"
   },
-  "host": "localhost:3000/api",
+  "host": "localhost:4000/api/v1",
   "basePath": "/",
   "schemes": [
     "http"
@@ -29,8 +29,35 @@
                 },
                 "password": {
                   "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/register/patient": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
                 },
-                "role": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
                   "example": "any"
                 }
               }
@@ -44,7 +71,40 @@
         }
       }
     },
-    "/verify-user": {
+    "/register/organization": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "cac_number": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/verify": {
       "post": {
         "description": "",
         "responses": {
@@ -54,7 +114,7 @@
         }
       }
     },
-    "/signin": {
+    "/login": {
       "post": {
         "description": "",
         "responses": {
@@ -176,7 +236,7 @@
         }
       }
     },
-    "/refresh-token": {
+    "/refresh": {
       "post": {
         "description": "",
         "responses": {
@@ -440,8 +500,35 @@
                 },
                 "password": {
                   "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/auth/register/patient": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
                 },
-                "role": {
+                "email": {
+                  "example": "any"
+                },
+                "password": {
                   "example": "any"
                 }
               }
@@ -455,7 +542,40 @@
         }
       }
     },
-    "/v1/auth/verify-user": {
+    "/v1/auth/register/organization": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "cac_number": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "password": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/v1/auth/verify": {
       "post": {
         "description": "",
         "responses": {
@@ -465,7 +585,7 @@
         }
       }
     },
-    "/v1/auth/signin": {
+    "/v1/auth/login": {
       "post": {
         "description": "",
         "responses": {
@@ -587,7 +707,7 @@
         }
       }
     },
-    "/v1/auth/refresh-token": {
+    "/v1/auth/refresh": {
       "post": {
         "description": "",
         "responses": {
