@@ -36,6 +36,10 @@ export const SigninSchema = z.object({
   email: emailSchema,
   password: z.string({ error: "Password must be a string" }).min(1, {
     message: "Password is required"
+  }),
+  role: z.enum(["admin", "platform", "provider", "practitioner", "patient"], {
+    error:
+      "Role must be either admin, patient, provider, practitioner or platform"
   })
 });
 

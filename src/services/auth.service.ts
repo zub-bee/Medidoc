@@ -20,7 +20,8 @@ import {
   REACTIVATION_AVAILABLE_AT,
   REFRESH_TOKEN_EXPIRY,
   RESET_PASSWORD_TOKEN_EXPIRY,
-  SESSION_EXPIRY
+  SESSION_EXPIRY,
+  ACCESS_TOKEN_EXPIRY
 } from "../constants/auth";
 import {
   generateAccessToken,
@@ -358,7 +359,6 @@ export class AuthService {
       _id: user.id,
       name,
       email,
-      avatar: user.avatar,
       isEmailVerified: true
     };
   }
@@ -429,7 +429,7 @@ export class AuthService {
         })
         .where(eq(users.id, user.id));
 
-      await AuthService.handleToken(
+      const tokens = await AuthService.handleToken(
         {
           _id: user.id,
           role,
@@ -443,7 +443,10 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        isEmailVerified: user.isEmailVerified
+        isEmailVerified: user.isEmailVerified,
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        expires_in: Math.floor(ACCESS_TOKEN_EXPIRY / 1000)
       };
     } catch (err) {
       if (err instanceof ApiError) {
@@ -525,6 +528,12 @@ export class AuthService {
         lockUntil: null
       })
       .where(eq(users.id, user._id));
+
+    return {
+      accessToken,
+      refreshToken,
+      sessionId
+    };
   }
 
   static async getUserProfile(userId: string) {

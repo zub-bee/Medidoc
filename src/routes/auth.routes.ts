@@ -72,7 +72,7 @@ router.post(
 router.post("/verify", validateRequest(VerifyOtpSchema), verifyUser);
 
 router.post(
-  "/signin",
+  "/login",
   validateRequest(SigninSchema),
   signinRateLimiter,
   signinUser

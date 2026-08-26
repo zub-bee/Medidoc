@@ -95,7 +95,6 @@ export const verifyUser = AsyncHandler(
         id: createdUser._id,
         name: createdUser.name,
         email: createdUser.email,
-        avatar: createdUser.avatar,
         isEmailVerified: createdUser.isEmailVerified
       }
     });
@@ -106,14 +105,14 @@ export const verifyUser = AsyncHandler(
 export const signinUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password, role } = req.body;
-    if (!email || !password) {
+    if (!email || !password || !role) {
       return next(ApiError.badRequest("Email and password are required"));
     }
 
     const ip = req.ip || "Unknown";
     const userAgent = req.headers["user-agent"] || "Unknown";
 
-    await AuthService.signinUser(
+    const signedInUser = await AuthService.signinUser(
       { email, role, password, ip, userAgent },
       {
         setAuthCookie: (
@@ -126,7 +125,7 @@ export const signinUser = AsyncHandler(
       }
     );
 
-    return ApiResponse.ok(res, "User signed in successfully!");
+    return ApiResponse.ok(res, "User signed in successfully!", signedInUser);
   }
 );
 
