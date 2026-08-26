@@ -34,7 +34,12 @@ import {
   generateSecureToken,
   generateUUID
 } from "../helpers/token.helpers";
-import { AvatarData, RefreshTokenData, SessionData } from "../types/user";
+import {
+  AvatarData,
+  RefreshTokenData,
+  SessionData,
+  UserRole
+} from "../types/user";
 import { OtpService } from "./otp.service";
 import { deleteFileFromCloudinary } from "./cloudinary.service";
 import redisClient from "../configs/redis";
@@ -283,7 +288,7 @@ export class AuthService {
     }
   }
 
-  static async verifyUser({ email, code }: VerifyOtpType) {
+  static async verifyUser({ email, code, role }: VerifyOtpType) {
     const hashCode = generateHashedToken(code);
 
     await OtpService.verifyOtp(hashCode, email);
@@ -317,6 +322,7 @@ export class AuthService {
         .insert(users)
         .values({
           name,
+          role,
           email: userEmail,
           password,
           isEmailVerified: true
@@ -348,11 +354,13 @@ export class AuthService {
   static async signinUser(
     {
       email,
+      role,
       password,
       ip,
       userAgent
     }: {
       email: string;
+      role: UserRole;
       password: string;
       ip: string;
       userAgent: string;
@@ -434,7 +442,7 @@ export class AuthService {
   }
 
   static async handleToken(
-    user: { _id: string; role: string } & {
+    user: { _id: string; role: UserRole } & {
       ip: string;
       userAgent: string;
     },
@@ -444,7 +452,7 @@ export class AuthService {
 
     const accessToken = generateAccessToken({
       _id: user._id,
-      role,
+      role: user.role,
       sessionId
     });
 

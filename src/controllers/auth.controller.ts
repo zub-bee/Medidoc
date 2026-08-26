@@ -97,7 +97,7 @@ export const verifyUser = AsyncHandler(
 //? SIGNIN USER
 export const signinUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
     if (!email || !password) {
       return next(ApiError.badRequest("Email and password are required"));
     }
@@ -106,7 +106,7 @@ export const signinUser = AsyncHandler(
     const userAgent = req.headers["user-agent"] || "Unknown";
 
     await AuthService.signinUser(
-      { email, password, ip, userAgent },
+      { email, role, password, ip, userAgent },
       {
         setAuthCookie: (
           accessToken: string,
