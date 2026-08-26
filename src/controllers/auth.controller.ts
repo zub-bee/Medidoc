@@ -300,12 +300,12 @@ export const forgotPassword = AsyncHandler(
 //? VERIFY RESET PASSWORD TOKEN
 export const verifyResetPasswordOtp = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { otpCode, email } = req.body;
-    if (!otpCode || !email) {
-      return next(ApiError.badRequest("OtpCode and email are required!"));
+    const { code, email } = req.body;
+    if (!code || !email) {
+      return next(ApiError.badRequest("code and email are required!"));
     }
 
-    await AuthService.verifyResetPasswordOtp(otpCode, email);
+    await AuthService.verifyResetPasswordOtp(code, email);
 
     return ApiResponse.ok(
       res,
