@@ -68,10 +68,7 @@ export const VerifyOtpSchema = z.object({
     error:
       "Role must be either admin, patient, provider, practitioner or platform"
   }),
-  code: z.string().min(6, "Please enter a valid OTP"),
-  user_id: z.string({ error: "User id must be a string" }).min(1, {
-    message: "User id is required"
-  })
+  code: z.string().min(6, "Please enter a valid OTP")
 });
 
 export const ResetPasswordSchema = z.object({
