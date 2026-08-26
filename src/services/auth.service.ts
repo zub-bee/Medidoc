@@ -2,7 +2,7 @@ import { NextFunction } from "express";
 import db from "../configs/db";
 import { users } from "../drizzle/schemas/user.schema";
 import { patients } from "../drizzle/schemas/patients.schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { ApiError } from "../utils/api-error";
 import { hashPassword, verifyPassword } from "../helpers/auth.helpers";
 import {
@@ -381,7 +381,11 @@ export class AuthService {
   ) {
     try {
       const user = await db.query.users.findFirst({
-        where: eq(users.email, email)
+        where: and(
+          eq(users.email, email),
+          eq(users.role, role),
+          eq(users.isDeleted, false)
+        )
       });
       if (!user) {
         throw ApiError.unauthorized("Invalid credentials");
@@ -729,8 +733,8 @@ export class AuthService {
     });
   }
 
-  static async verifyResetPasswordOtp(otpCode: string, email: string) {
-    const hashedCode = generateHashedToken(otpCode);
+  static async verifyResetPasswordOtp(code: string, email: string) {
+    const hashedCode = generateHashedToken(code);
 
     const redisKey = `reset_password:${email}:${hashedCode}`;
     const storedHashCode = await redisClient.get(redisKey);
