@@ -1,6 +1,8 @@
 import * as z from "zod";
 import { OTP_TYPES } from "../constants/auth";
-import { id } from "zod/v4/locales";
+import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+
+extendZodWithOpenApi(z);
 
 export const nameSchema = z
   .string({ error: "Name must be a string" })
