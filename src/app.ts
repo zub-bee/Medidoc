@@ -31,7 +31,7 @@ app.get("/", (req: Request, res: Response) => {
   res.redirect("/api/v1/health");
 });
 
-app.use("/api", Routes);
+app.use("/api/v1", Routes);
 
 //? Not-found-handler (should be after routes)
 app.use(notFoundHandler);
