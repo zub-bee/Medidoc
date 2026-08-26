@@ -80,15 +80,15 @@ export const signupOrganizationUser = AsyncHandler(
 //? VERIFY USER
 export const verifyUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { role, code, user_id, email }: VerifyOtpType = req.body;
+    const { role, code, email }: VerifyOtpType = req.body;
 
-    if (!role || !code || !user_id || !email) {
+    if (!role || !code || !email) {
       return next(
         ApiError.badRequest("Email, user id, role and code are required")
       );
     }
 
-    await AuthService.verifyUser({ email, code, user_id, role });
+    await AuthService.verifyUser({ email, code, role });
 
     return ApiResponse.ok(res, "User verified successfully");
   }
