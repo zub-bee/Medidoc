@@ -8,7 +8,9 @@ import {
   SigninSchema,
   SignupSchema,
   UpdateProfileSchema,
-  VerifyOtpSchema
+  VerifyOtpSchema,
+  RegisterPatientSchema,
+  RegisterOrganizationSchema
 } from "../validators/auth";
 import {
   changePassword,
@@ -25,6 +27,8 @@ import {
   resetPassword,
   signinUser,
   signupUser,
+  signupPatientUser,
+  signupOrganizationUser,
   updateProfile,
   verifyResetPasswordOtp,
   verifyUser
@@ -40,6 +44,7 @@ import {
   signupRateLimiter
 } from "../middlewares/rate-limiter";
 import upload from "../middlewares/upload-file";
+import { authorize } from "passport";
 
 const router = Router();
 
@@ -47,7 +52,22 @@ router.post(
   "/signup",
   validateRequest(SignupSchema),
   signupRateLimiter,
-  signupUser
+  signupUser,
+  authorizeUser
+);
+
+router.post(
+  "/auth/register/patient",
+  validateRequest(RegisterPatientSchema),
+  signupRateLimiter,
+  signupPatientUser
+);
+
+router.post(
+  "/auth/register/organization",
+  validateRequest(RegisterOrganizationSchema),
+  signupRateLimiter,
+  signupOrganizationUser
 );
 
 router.post("/verify-user", validateRequest(VerifyOtpSchema), verifyUser);
