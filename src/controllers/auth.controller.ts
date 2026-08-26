@@ -6,6 +6,7 @@ import { ApiError } from "../utils/api-error";
 import { AuthService } from "../services/auth.service";
 import { clearAuthCookies, setAuthCookies } from "../helpers/cookie.helper";
 import { AvatarData, UserRequest } from "../types/user";
+import { ACCESS_TOKEN_EXPIRY } from "../constants/auth";
 import {
   deleteFileFromCloudinary,
   uploadToCloudinary
@@ -232,20 +233,29 @@ export const updateProfile = AsyncHandler(
 //? REFRESH TOKENS
 export const refreshToken = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const accessToken = req.cookies?.accessToken;
-    const refreshToken = req.cookies?.refreshToken;
+    const accessToken = req.cookies?.access_token;
+    const refreshToken = req.cookies?.refresh_token || req.body?.refresh_token;
 
     const token = await AuthService.refreshTokens(accessToken, refreshToken);
 
     if (!token) {
-      return next(ApiError.server("Failed to refresh tokens!"));
+      return next(
+        ApiError.server(
+          "Failed to refresh tokens! Attach your access token \
+                                  as cookies and attach your refresh token to the body/cookies"
+        )
+      );
     }
 
     const newAccessToken = token.accessToken;
     const newRefreshToken = token.refreshToken;
     setAuthCookies(res, newAccessToken, newRefreshToken, token.sessionId);
 
-    return ApiResponse.Success(res, "Tokens refreshed successfully!");
+    return ApiResponse.Success(res, "Tokens refreshed successfully!", {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+      expires_in: Math.floor(ACCESS_TOKEN_EXPIRY / 1000)
+    });
   }
 );
 

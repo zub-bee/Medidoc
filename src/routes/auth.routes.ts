@@ -56,14 +56,14 @@ router.post(
 );
 
 router.post(
-  "/auth/register/patient",
+  "/register/patient",
   validateRequest(RegisterPatientSchema),
   signupRateLimiter,
   signupPatientUser
 );
 
 router.post(
-  "/auth/register/organization",
+  "/register/organization",
   validateRequest(RegisterOrganizationSchema),
   signupRateLimiter,
   signupOrganizationUser
@@ -105,7 +105,7 @@ router.delete(
   deleteUserSession
 );
 
-router.post("/refresh-token", refreshToken);
+router.post("/refresh", refreshToken);
 
 router.post(
   "/logout",
