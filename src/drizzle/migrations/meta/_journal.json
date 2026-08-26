@@ -43,6 +43,13 @@
       "when": 1787702834027,
       "tag": "0005_mysterious_goblin_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787742135630,
+      "tag": "0006_spicy_liz_osborn",
+      "breakpoints": true
     }
   ]
 }
