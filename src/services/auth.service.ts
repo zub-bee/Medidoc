@@ -2,6 +2,9 @@ import { NextFunction } from "express";
 import db from "../configs/db";
 import { users } from "../drizzle/schemas/user.schema";
 import { patients } from "../drizzle/schemas/patients.schema";
+import { providers } from "../drizzle/schemas/providers.schema";
+import { admins } from "../drizzle/schemas/admins.schema";
+import { practitioners } from "../drizzle/schemas/practitioners.schema";
 import { eq, and } from "drizzle-orm";
 import { ApiError } from "../utils/api-error";
 import { hashPassword, verifyPassword } from "../helpers/auth.helpers";
@@ -215,16 +218,17 @@ export class AuthService {
 
   static async registerOrganizationUser(user: RegisterOrganizationType) {
     try {
-      const { name, cac_number, email, password } = user;
+      const { name, cac_number, admin_name, admin_email, admin_password } =
+        user;
       const existingUser = await db.query.users.findFirst({
-        where: eq(users.email, email)
+        where: eq(users.email, admin_email)
       });
 
       if (existingUser) {
         throw ApiError.conflict("Organization with this email already exists");
       }
 
-      const pending = await redisClient.get(`user:pending:${email}`);
+      const pending = await redisClient.get(`user:pending:${admin_email}`);
 
       if (pending) {
         throw ApiError.conflict(
@@ -232,24 +236,25 @@ export class AuthService {
         );
       }
 
-      const hashedPassword = await hashPassword(password);
+      const hashedPassword = await hashPassword(admin_password);
 
-      await OtpService.checkOtpRestrictions(email);
-      await OtpService.trackOtpRequests(email);
+      await OtpService.checkOtpRestrictions(admin_email);
+      await OtpService.trackOtpRequests(admin_email);
 
       const { code, hashCode } = generateOTP(OTP_CODE_LENGTH);
 
-      const redisKey = `user:${email}:${hashCode}`;
-      const indexKey = `user:pending:${email}`;
+      const redisKey = `user:${admin_email}:${hashCode}`;
+      const indexKey = `user:pending:${admin_email}`;
       const userData = JSON.stringify({
-        name,
-        email,
-        password: hashedPassword
+        name: admin_name,
+        email: admin_email,
+        password: hashedPassword,
+        organization: { name, cacNumber: cac_number }
       });
 
       await OtpService.sendOtp({
-        name,
-        email,
+        name: admin_name,
+        email: admin_email,
         templateName: "email-verification",
         code,
         hashCode,
@@ -274,8 +279,8 @@ export class AuthService {
         await Promise.allSettled([
           redisClient.del(redisKey),
           redisClient.del(indexKey),
-          redisClient.del(`otp:${email}`),
-          redisClient.del(`otp_cooldown:${email}`)
+          redisClient.del(`otp:${admin_email}`),
+          redisClient.del(`otp_cooldown:${admin_email}`)
         ]);
 
         throw error;
@@ -305,7 +310,8 @@ export class AuthService {
       name,
       email: userEmail,
       password,
-      patient
+      patient,
+      organization
     } = JSON.parse(userData) as {
       name: string;
       email: string;
@@ -317,9 +323,11 @@ export class AuthService {
         phone: string;
         nin: string;
       };
+      organization?: {
+        name: string;
+        cacNumber: string;
+      };
     };
-
-    // for organization
 
     const user = await db.transaction(async tx => {
       const [createdUser] = await tx
@@ -346,6 +354,32 @@ export class AuthService {
             "Failed to create patient profile"
           );
           throw ApiError.server("Failed to create patient profile");
+        }
+      }
+
+      if (organization) {
+        try {
+          const [createdProvider] = await tx
+            .insert(providers)
+            .values({
+              name: organization.name,
+              cacNumber: organization.cacNumber,
+              status: "pending"
+            })
+            .returning();
+
+          await tx.insert(admins).values({
+            organizationId: createdProvider.id,
+            fullName: name,
+            email: userEmail,
+            status: "verified"
+          });
+        } catch (error) {
+          logger.error(
+            { error, userEmail, name },
+            "Failed to create organization profile"
+          );
+          throw ApiError.server("Failed to create organization profile");
         }
       }
 
@@ -432,6 +466,30 @@ export class AuthService {
           lockUntil: null
         })
         .where(eq(users.id, user.id));
+
+      if (role === "admin") {
+        const [adminRecord] = await db
+          .select()
+          .from(admins)
+          .where(eq(admins.email, email))
+          .limit(1);
+
+        if (!adminRecord || adminRecord.status !== "verified") {
+          throw ApiError.forbidden("Admin account is not yet approved");
+        }
+      }
+
+      if (role === "practitioner") {
+        const [practitionerRecord] = await db
+          .select()
+          .from(practitioners)
+          .where(eq(practitioners.email, email))
+          .limit(1);
+
+        if (!practitionerRecord || practitionerRecord.status !== "active") {
+          throw ApiError.forbidden("Practitioner account is not yet approved");
+        }
+      }
 
       const tokens = await AuthService.handleToken(
         {

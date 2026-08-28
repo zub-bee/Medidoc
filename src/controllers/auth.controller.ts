@@ -55,21 +55,23 @@ export const signupPatientUser = AsyncHandler(
 
 export const signupOrganizationUser = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { name, cac_number, email, password } = req.body;
-    if (!name || !email || !cac_number || !password) {
+    const { name, cac_number, admin_name, admin_email, admin_password } =
+      req.body;
+    if (
+      !name ||
+      !cac_number ||
+      !admin_name ||
+      !admin_email ||
+      !admin_password
+    ) {
       return next(
         ApiError.badRequest(
-          "Company name, email, CAC number and password are required"
+          "Organization name, CAC number, admin name, email and password are required"
         )
       );
     }
 
-    await AuthService.registerOrganizationUser({
-      name,
-      cac_number,
-      email,
-      password
-    });
+    await AuthService.registerOrganizationUser(req.body);
 
     return ApiResponse.Success(
       res,
