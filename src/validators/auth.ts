@@ -131,12 +131,19 @@ export const RegisterPatientSchema = z
     path: ["confirm_password"]
   });
 
-export const RegisterOrganizationSchema = z.object({
-  name: z.string().min(1, "Organization name is required"),
-  cac_number: z.string().min(1, "CAC number is required"),
-  email: emailSchema,
-  password: passwordSchema
-});
+export const RegisterOrganizationSchema = z
+  .object({
+    name: z.string().min(1, "Organization name is required"),
+    cac_number: z.string().min(1, "CAC number is required"),
+    admin_name: nameSchema,
+    admin_email: emailSchema,
+    admin_password: passwordSchema,
+    admin_confirm_password: passwordSchema
+  })
+  .refine(data => data.admin_password === data.admin_confirm_password, {
+    message: "Passwords do not match",
+    path: ["admin_confirm_password"]
+  });
 
 export const VerifySchema = z.object({
   role: z.enum(["patient", "provider", "platform", "practitioner", "admin"]),

@@ -1,12 +1,13 @@
 import jwt from "jsonwebtoken";
 import env from "../configs/env";
+import { UserRole } from "../types/user";
 
 const JWT_ACCESS_TOKEN_EXPIRY = "15m";
 const JWT_REFRESH_TOKEN_EXPIRY = "7d";
 
 export function generateAccessToken(user: {
   _id: string;
-  role: "patient" | "admin" | "provider" | "practitioner" | "platform";
+  role: UserRole;
   sessionId: string;
 }) {
   return jwt.sign(
@@ -31,7 +32,7 @@ export function generateRefreshToken(user: { _id: string; sessionId: string }) {
 export function verifyAccessToken(token: string) {
   return jwt.verify(token, env.JWT_ACCESS_SECRET!) as {
     _id: string;
-    role: "user" | "admin";
+    role: UserRole;
     sessionId: string;
   };
 }
