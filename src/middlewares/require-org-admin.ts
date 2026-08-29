@@ -12,7 +12,10 @@ export async function requireOrgAdmin(
   next: NextFunction
 ): Promise<void> {
   try {
-    if (!req.user?._id || req.user.role !== "admin") {
+    if (
+      !req.user?._id ||
+      (req.user.role !== "admin" && req.user.role !== "provider")
+    ) {
       return next(ApiError.forbidden("Admin access required"));
     }
 

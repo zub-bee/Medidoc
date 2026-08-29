@@ -1,24 +1,21 @@
-import { pgTable, text, timestamp, json } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, json, uuid } from "drizzle-orm/pg-core";
 import { patients } from "./patients.schema";
 import { practitioners } from "./practitioners.schema";
 import { providers } from "./providers.schema";
 import { episodes } from "./episodes.schema";
 
 export const clinical_entries = pgTable("clinical_entries", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  patientId: text("patient_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  patientId: uuid("patient_id")
     .references(() => patients.id)
     .notNull(),
-  practitionerId: text("practitioner_id")
+  practitionerId: uuid("practitioner_id")
     .references(() => practitioners.id)
     .notNull(),
-  organizationId: text("organization_id")
+  organizationId: uuid("organization_id")
     .references(() => providers.id)
     .notNull(),
-  episodeId: text("episode_id").references(() => episodes.id),
+  episodeId: uuid("episode_id").references(() => episodes.id),
   eventType: text("event_type", {
     enum: [
       "observation",

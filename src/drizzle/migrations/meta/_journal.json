@@ -50,6 +50,13 @@
       "when": 1787742135630,
       "tag": "0006_spicy_liz_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788007419634,
+      "tag": "0007_broken_anita_blake",
+      "breakpoints": true
     }
   ]
 }

@@ -1,16 +1,20 @@
-import { pgTable, text, timestamp, integer, json } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import {
+  pgTable,
+  text,
+  timestamp,
+  integer,
+  json,
+  uuid
+} from "drizzle-orm/pg-core";
 import { patients } from "./patients.schema";
 import { episodes } from "./episodes.schema";
 
 export const patient_summaries = pgTable("patient_summaries", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  patientId: text("patient_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  patientId: uuid("patient_id")
     .references(() => patients.id)
     .notNull(),
-  episodeId: text("episode_id").references(() => episodes.id),
+  episodeId: uuid("episode_id").references(() => episodes.id),
   category: text("category", {
     enum: [
       "problem_list",
@@ -26,7 +30,7 @@ export const patient_summaries = pgTable("patient_summaries", {
   }).notNull(),
   data: json("data").notNull(),
   versionNo: integer("version_no"),
-  updatedBy: text("updated_by"),
+  updatedBy: uuid("updated_by"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .notNull()

@@ -166,6 +166,7 @@ export const getUserProfile = AsyncHandler(
         name: user.name,
         email: user.email,
         avatar: user.avatar,
+        role: user.role,
         isEmailVerified: user.isEmailVerified,
         lastLoginAt: user.lastLoginAt,
         sessions: result

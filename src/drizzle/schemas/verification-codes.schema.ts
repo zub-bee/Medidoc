@@ -1,14 +1,11 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const verification_codes = pgTable("verification_codes", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
+  id: uuid("id").primaryKey().defaultRandom(),
   role: text("role", {
     enum: ["patient", "provider", "practitioner", "platform", "admin"]
   }),
-  actorId: text("actor_id"),
+  actorId: uuid("actor_id"),
   codeHash: text("code_hash"),
   purpose: text("purpose"),
   expiresAt: timestamp("expires_at"),

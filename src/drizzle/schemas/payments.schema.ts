@@ -1,17 +1,14 @@
-import { pgTable, text, timestamp, decimal } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, decimal, uuid } from "drizzle-orm/pg-core";
 import { invoices } from "./invoices.schema";
 
 export const payments = pgTable("payments", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  invoiceId: text("invoice_id").references(() => invoices.id),
+  id: uuid("id").primaryKey().defaultRandom(),
+  invoiceId: uuid("invoice_id").references(() => invoices.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   method: text("method", { enum: ["cash", "card", "transfer", "insurance"] })
     .notNull()
     .default("transfer"),
-  recordedBy: text("recorded_by").notNull(),
+  recordedBy: uuid("recorded_by").notNull(),
   paidAt: timestamp("paid_at").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
