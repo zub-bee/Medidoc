@@ -1,16 +1,13 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { patients } from "./patients.schema";
 import { providers } from "./providers.schema";
 
 export const organization_access = pgTable("organization_access", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  patientId: text("patient_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  patientId: uuid("patient_id")
     .references(() => patients.id)
     .notNull(),
-  organizationId: text("organization_id")
+  organizationId: uuid("organization_id")
     .references(() => providers.id)
     .notNull(),
   status: text("status", { enum: ["active", "revoked"] }).notNull(),
