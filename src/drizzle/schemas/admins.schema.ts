@@ -1,12 +1,9 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { providers } from "./providers.schema";
 
 export const admins = pgTable("admins", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  organizationId: text("organization_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
     .references(() => providers.id, {
       onDelete: "cascade"
     })

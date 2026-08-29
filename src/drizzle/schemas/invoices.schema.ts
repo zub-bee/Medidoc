@@ -1,26 +1,23 @@
-import { pgTable, text, timestamp, decimal } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, decimal, uuid } from "drizzle-orm/pg-core";
 import { patients } from "./patients.schema";
 import { providers } from "./providers.schema";
 import { appointments } from "./appointments.schema";
 
 export const invoices = pgTable("invoices", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  patientId: text("patient_id")
+  id: uuid("id").primaryKey().defaultRandom(),
+  patientId: uuid("patient_id")
     .references(() => patients.id)
     .notNull(),
-  organizationId: text("organization_id")
+  organizationId: uuid("organization_id")
     .references(() => providers.id)
     .notNull(),
-  appointmentId: text("appointment_id").references(() => appointments.id),
+  appointmentId: uuid("appointment_id").references(() => appointments.id),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   status: text("status", { enum: ["pending", "paid", "overdue"] }).notNull(),
   insuranceProvider: text("insurance_provider"),
   insurancePolicyNumber: text("insurance_policy_number"),
   serviceCode: text("service_code"),
-  createdBy: text("created_by"),
+  createdBy: uuid("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

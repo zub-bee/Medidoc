@@ -1,10 +1,7 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const platforms = pgTable("platforms", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
+  id: uuid("id").primaryKey().defaultRandom(),
   fullName: text("name").notNull(),
   email: text("email").notNull().unique(),
 

@@ -1,10 +1,7 @@
-import { pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
-import { createId } from "@paralleldrive/cuid2";
+import { pgTable, text, timestamp, varchar, uuid } from "drizzle-orm/pg-core";
 
 export const providers = pgTable("providers", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
+  id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   cacNumber: varchar("cac_number").notNull().unique(),
   status: text("status", {
