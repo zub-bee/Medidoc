@@ -329,12 +329,18 @@ export class AuthService {
       };
     };
 
+    if (patient) {
+      role = "patient";
+    } else if (organization) {
+      role = "provider";
+    }
+
     const user = await db.transaction(async tx => {
       const [createdUser] = await tx
         .insert(users)
         .values({
           name,
-          role,
+          role: role,
           email: userEmail,
           password,
           isEmailVerified: true
