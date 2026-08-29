@@ -13,7 +13,7 @@ export interface UserRequest extends Request {
   user?: {
     _id?: string | undefined;
     id?: string | undefined;
-    role?: UserRole | undefined;
+    role?: UserRole;
     sessionId?: string | undefined;
   };
   admin?: {
