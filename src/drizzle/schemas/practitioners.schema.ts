@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { providers } from "./providers.schema";
 import { users } from "./user.schema";
+import { admins } from "./admins.schema";
 
 export const practitioners = pgTable("practitioners", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -15,7 +16,7 @@ export const practitioners = pgTable("practitioners", {
   email: text("email").notNull().unique(),
   //just noticed a bug here, can't fix it yet. trying to round off the others first. what approved by references here is the provider id which in this case is the org. but it shoudl reference the admin that approved
   approvedBy: uuid("approved_by")
-    .references(() => providers.id)
+    .references(() => admins.id)
     .notNull(),
   status: text("status", { enum: ["pending", "active", "revoked"] }).notNull(),
 

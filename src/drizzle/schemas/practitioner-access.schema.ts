@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { practitioners } from "./practitioners.schema";
 import { patients } from "./patients.schema";
 import { providers } from "./providers.schema";
+import { admins } from "./admins.schema";
 
 export const practitioner_access = pgTable("practitioner_access", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -12,7 +13,7 @@ export const practitioner_access = pgTable("practitioner_access", {
     .references(() => patients.id)
     .notNull(),
   grantedBy: uuid("granted_by")
-    .references(() => providers.id)
+    .references(() => admins.id)
     .notNull(),
   status: text("status", { enum: ["active", "revoked"] }).notNull(),
   grantedAt: timestamp("granted_at"),

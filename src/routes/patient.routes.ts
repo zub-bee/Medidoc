@@ -14,7 +14,7 @@ router.get(
   "/me",
   verifyAuthentication,
   requirePatientUser,
-  handlePatientProfile // this has to change back to use just patient id
+  handlePatientProfile
 );
 
 router.get(

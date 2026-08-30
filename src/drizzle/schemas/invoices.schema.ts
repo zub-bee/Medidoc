@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, decimal, uuid } from "drizzle-orm/pg-core";
 import { patients } from "./patients.schema";
 import { providers } from "./providers.schema";
 import { appointments } from "./appointments.schema";
+import { admins } from "./admins.schema";
 
 export const invoices = pgTable("invoices", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -17,7 +18,7 @@ export const invoices = pgTable("invoices", {
   insuranceProvider: text("insurance_provider"),
   insurancePolicyNumber: text("insurance_policy_number"),
   serviceCode: text("service_code"),
-  createdBy: uuid("created_by"),
+  createdBy: uuid("created_by").references(() => admins.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
