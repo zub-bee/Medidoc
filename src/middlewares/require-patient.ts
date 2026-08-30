@@ -29,11 +29,10 @@ export async function requirePatientUser(
     const [patientAccount] = await db
       .select()
       .from(patients)
-      .where(eq(patients.email, userAccount.email))
+      .where(eq(patients.userId, req.user._id))
       .limit(1);
 
     if (!patientAccount || userAccount.isDeleted) {
-      // verified nin could be a requirement or not, isPhoneVerified could be added to patient table or user table
       return next(ApiError.forbidden("Patient account does not exist"));
     }
 

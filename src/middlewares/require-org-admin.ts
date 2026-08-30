@@ -1,7 +1,6 @@
 import { NextFunction, Response } from "express";
 import { eq } from "drizzle-orm";
 import db from "../configs/db";
-import { users } from "../drizzle/schemas/user.schema";
 import { admins } from "../drizzle/schemas/admins.schema";
 import { ApiError } from "../utils/api-error";
 import { UserRequest } from "../types/user";
@@ -19,20 +18,10 @@ export async function requireOrgAdmin(
       return next(ApiError.forbidden("Admin access required"));
     }
 
-    const [account] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, req.user._id))
-      .limit(1);
-
-    if (!account) {
-      return next(ApiError.unauthorized("Unauthorized, please login."));
-    }
-
     const [adminRecord] = await db
       .select()
       .from(admins)
-      .where(eq(admins.email, account.email))
+      .where(eq(admins.userId, req.user._id))
       .limit(1);
 
     if (!adminRecord || adminRecord.status !== "verified") {
