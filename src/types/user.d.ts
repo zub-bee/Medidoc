@@ -1,7 +1,5 @@
 import { Request } from "express";
 import { OTP_TYPES } from "../constants/auth";
-import { Patient } from "../drizzle/schemas/patients.schema";
-import { Practitioner } from "../drizzle/schemas/practitioners.schema";
 
 export type OTPType = (typeof OTP_TYPES)[number];
 
@@ -22,8 +20,11 @@ export interface UserRequest extends Request {
     id: string;
     organizationId: string;
   };
-  patient?: Patient;
-  practitioner?: Practitioner;
+  patient_id?: string;
+  practitioner?: {
+    id: string;
+    organizationId: string;
+  };
 }
 
 export interface IUser {
