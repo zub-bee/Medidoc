@@ -33,17 +33,21 @@ export class OrganizationService {
     const hashedPassword = await hashPassword(password);
 
     const [createdAdmin] = await db.transaction(async tx => {
-      await tx.insert(users).values({
-        name,
-        email,
-        password: hashedPassword,
-        role: "admin",
-        isEmailVerified: true
-      });
+      const [createdUser] = await tx
+        .insert(users)
+        .values({
+          name,
+          email,
+          password: hashedPassword,
+          role: "admin",
+          isEmailVerified: true
+        })
+        .returning();
 
       return tx
         .insert(admins)
         .values({
+          userId: createdUser.id,
           organizationId,
           fullName: name,
           email,
@@ -119,17 +123,21 @@ export class OrganizationService {
     const hashedPassword = await hashPassword(password);
 
     const [createdPractitioner] = await db.transaction(async tx => {
-      await tx.insert(users).values({
-        name,
-        email,
-        password: hashedPassword,
-        role: "practitioner",
-        isEmailVerified: true
-      });
+      const [createdUser] = await tx
+        .insert(users)
+        .values({
+          name,
+          email,
+          password: hashedPassword,
+          role: "practitioner",
+          isEmailVerified: true
+        })
+        .returning();
 
       return tx
         .insert(practitioners)
         .values({
+          userId: createdUser.id,
           organizationId,
           fullName: name,
           email,

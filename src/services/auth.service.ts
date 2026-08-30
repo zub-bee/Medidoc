@@ -305,7 +305,6 @@ export class AuthService {
       throw ApiError.badRequest("Invalid or expired otp");
     }
 
-    // for patient
     const {
       name,
       email: userEmail,
@@ -350,6 +349,7 @@ export class AuthService {
       if (patient) {
         try {
           await tx.insert(patients).values({
+            userId: createdUser.id,
             fullName: name,
             email: userEmail,
             ...patient
@@ -375,6 +375,7 @@ export class AuthService {
             .returning();
 
           await tx.insert(admins).values({
+            userId: createdUser.id,
             organizationId: createdProvider.id,
             fullName: name,
             email: userEmail,
