@@ -6,9 +6,14 @@ import {
   varchar,
   uuid
 } from "drizzle-orm/pg-core";
+import { users } from "./user.schema";
 
 export const patients = pgTable("patients", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
   fullName: text("name").notNull(),
   email: text("email").unique().notNull(),
   dob: date("dob").notNull(),

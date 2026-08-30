@@ -1,8 +1,13 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { providers } from "./providers.schema";
+import { users } from "./user.schema";
 
 export const admins = pgTable("admins", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
   organizationId: uuid("organization_id")
     .references(() => providers.id, {
       onDelete: "cascade"
