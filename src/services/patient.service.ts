@@ -4,6 +4,16 @@ import db from "../configs/db";
 import { patient_summaries, PatientSummary } from "@/drizzle";
 
 export class PatientService {
+  static async getPatientProfile(patientId: string) {
+    const patient = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId)
+    });
+
+    console.log(patient);
+
+    return patient;
+  }
+
   static async getPatientSummaries(patientId: string) {
     const data = await db
       .select({

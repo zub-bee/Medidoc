@@ -36,7 +36,7 @@ export async function requirePatientUser(
       return next(ApiError.forbidden("Patient account does not exist"));
     }
 
-    req.patient = patientAccount;
+    req.patient_id = patientAccount.id;
 
     return next();
   } catch (err) {
