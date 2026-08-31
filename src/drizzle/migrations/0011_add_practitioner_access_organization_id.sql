@@ -1,0 +1,3 @@
+ALTER TABLE "practitioner_access" ADD COLUMN "organization_id" uuid NOT NULL;--> statement-breakpoint
+ALTER TABLE "practitioner_access" ADD CONSTRAINT "practitioner_access_organization_id_providers_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."providers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "practitioner_access_organization_id_idx" ON "practitioner_access" USING btree ("organization_id");
