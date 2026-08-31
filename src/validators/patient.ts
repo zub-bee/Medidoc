@@ -49,15 +49,6 @@ export const NewSummarySchema = z.object({
   episode_id: z.uuid({ error: "label must be a valid uuid format" }).optional()
 });
 
-// {
-//   "event_type": "progress_note",
-//   "data": {
-//     "progress": "mehhh"
-//   },
-//   "occurred_at": "1998-04-25T04:01:20.400Z",
-//   "episode_id": "{{patient1EpisodeId}}"
-// }
-
 export const NewClinicalEntrySchema = z.object({
   event_type: z.enum(
     [

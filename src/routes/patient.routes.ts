@@ -51,6 +51,7 @@ import {
   NewSummarySchema,
   NewClinicalEntrySchema
 } from "@/validators/patient";
+import { UpdateProfileSchema } from "@/validators/auth";
 
 const router = Router();
 
