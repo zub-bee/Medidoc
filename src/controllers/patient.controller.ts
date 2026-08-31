@@ -11,9 +11,8 @@ export const handlePatientProfile = AsyncHandler(
     const role = req?.user?.role;
     const { patientId } = req.params;
 
-    // check patient role status
-    if (!authpatientId || role !== "patient") {
-      // check if it has patient access under req.patient_access
+    // if it's an unsignedin patient
+    if (!authpatientId && role === "patient") {
       return next(ApiError.unauthorized("Unauthorized access"));
     }
 
@@ -22,7 +21,7 @@ export const handlePatientProfile = AsyncHandler(
     }
 
     const patient = await PatientService.getPatientProfile(
-      patientId?.toString() || authpatientId
+      authpatientId || patientId?.toString()
     );
 
     if (!patient) {
@@ -30,10 +29,14 @@ export const handlePatientProfile = AsyncHandler(
     }
 
     return ApiResponse.ok(res, "Patient profile fetched successfully", {
-      patient_id: authpatientId || patientId,
+      patientId: authpatientId || patientId,
       ...patient
     });
   }
+);
+
+export const updatePatientProfile = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
 );
 
 export const getPatientSummaries = AsyncHandler(
