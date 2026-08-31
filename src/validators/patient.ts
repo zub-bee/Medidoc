@@ -7,3 +7,7 @@ export const UpdatePatientProfileSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional()
 });
+
+export const OrganizationAccessSchema = z.object({
+  organization_id: z.uuid({ error: "Organization id must be in uuid format" })
+});

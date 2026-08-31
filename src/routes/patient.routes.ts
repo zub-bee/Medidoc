@@ -9,7 +9,10 @@ import { checkUserAccountRestriction } from "../middlewares/user-account-restric
 import {
   handlePatientProfile,
   getPatientSummaries,
-  updatePatientProfile
+  updatePatientProfile,
+  getOrganizationAccess,
+  assignOrganizationAccess,
+  revokeOrganizationAccess
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -32,7 +35,9 @@ import { CreateInvoiceSchema } from "../validators/invoice";
 import { CreatePaymentSchema } from "../validators/payment";
 import { CreateConsentFormSchema } from "../validators/consent-form";
 import { UpdateProfileSchema } from "@/validators/auth";
-import { UpdatePatientProfileSchema } from "@/validators/patient";
+import { UpdatePatientProfileSchema,
+  OrganizationAccessSchema
+ } from "@/validators/patient";
 
 const router = Router();
 
@@ -60,33 +65,29 @@ router.patch(
 );
 
 router.get(
-  "/:patient/organization-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
+  "/:patientId/organization-access",
+  verifyAuthentication,
+  requirePatientAccess(),
+  getOrganizationAccess
 );
 
 router.post(
-  // some of these paths should only support the
-  // signed in patient user
-  // simply because only one user would be doing this
-  "/:patient/organization-access/:accessId/revoke",
-  // validate request body
+  "/:patientId/organization-access",
+  validateRequest(OrganizationAccessSchema),
   verifyAuthentication,
-  requirePatientUser
-  // handler for access rovoke
+  requirePatientUser,
+  assignOrganizationAccess
 );
 
 router.post(
-  "/:patient/organization-access",
-  // validate req body
+  "/:patientId/organization-access/:accessId/revoke",
   verifyAuthentication,
-  requirePatientUser
-  // handler for access list
+  requirePatientUser,
+  revokeOrganizationAccess
 );
 
 router.get(
-  "/:patient/practitioner-access",
+  "/:patientId/practitioner-access",
   verifyAuthentication
   // require access to this patient
   // handler for access list
@@ -96,7 +97,7 @@ router.post(
   // some of these paths should only support the
   // signed in patient user
   // simply because only one user would be doing this
-  "/:patient/practitioner-access/:accessId/revoke",
+  "/:patientId/practitioner-access/:accessId/revoke",
   // validate request body
   verifyAuthentication,
   requirePatientUser
@@ -104,7 +105,7 @@ router.post(
 );
 
 router.post(
-  "/:patient/practitioner-access",
+  "/:patientId/practitioner-access",
   // validate req body
   verifyAuthentication
   // req patient access
@@ -112,21 +113,21 @@ router.post(
 );
 
 router.get(
-  "/:patient/practitioner-access",
+  "/:patientId/practitioner-access",
   verifyAuthentication
   // require access to this patient
   // handler for access list
 );
 
 router.get(
-  "/:patient/episodes",
+  "/:patientId/episodes",
   verifyAuthentication
   // requirepatientaccess
   // handler for episodes
 );
 
 router.post(
-  "/:patient/episodes",
+  "/:patientId/episodes",
   // validate request body
   verifyAuthentication
   // require patient access
@@ -141,7 +142,7 @@ router.get(
 );
 
 router.post(
-  "/:patient/summaries",
+  "/:patientId/summaries",
   // validate request body
   verifyAuthentication
   // require patient access
@@ -157,7 +158,7 @@ router.get(
 );
 
 router.post(
-  "/:patient/clinical-entries",
+  "/:patientId/clinical-entries",
   // validate request body
   verifyAuthentication
   // require patient access

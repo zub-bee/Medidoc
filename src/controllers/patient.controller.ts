@@ -7,6 +7,7 @@ import { AsyncHandler } from "@/utils/async-handler";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
 import { eq } from "drizzle-orm";
+import { organization_access } from "@/drizzle";
 
 export const handlePatientProfile = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -83,6 +84,103 @@ export const updatePatientProfile = AsyncHandler(
         updatedAt: updatedUser?.updatedAt
       }
     });
+  }
+);
+
+export const getOrganizationAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const organizations = await PatientService.getOrganizationAccessList(
+      patientId?.toString()
+    );
+
+    if (!organizations) {
+      return next(
+        ApiError.server(
+          "Failed to get organization list. Please try again later!"
+        )
+      );
+    }
+
+    return ApiResponse.ok(
+      res,
+      "Organizations fetched successfully",
+      organizations
+    );
+  }
+);
+
+export const assignOrganizationAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { organization_id } = req.body;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.forbidden("Patient account does not exist"));
+    }
+
+    const newAccess = await PatientService.addOrganizationAccess(
+      patientId?.toString(),
+      organization_id
+    );
+
+    if (!newAccess) {
+      return next(
+        ApiError.server("Failed to create new access. Please try again later!")
+      );
+    }
+
+    return ApiResponse.created(res, "Access created successfully", newAccess);
+  }
+);
+
+export const revokeOrganizationAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId, accessId } = req.params;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.forbidden("Patient account does not exist"));
+    }
+
+    const revokedAccess = await PatientService.removeOrganizationAccess(
+      patientId?.toString(),
+      accessId?.toString()
+    );
+
+    if (!revokedAccess) {
+      return next(
+        ApiError.server("Failed to revoke access. Please try again later!")
+      );
+    }
+
+    return ApiResponse.ok(res, "Access revoked successfully", revokedAccess);
   }
 );
 

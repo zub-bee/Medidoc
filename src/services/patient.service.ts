@@ -1,7 +1,12 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
-import { patient_summaries, PatientSummary } from "@/drizzle";
+import {
+  organization_access,
+  patient_summaries,
+  PatientSummary
+} from "@/drizzle";
+import { ApiError } from "@/utils/api-error";
 
 export class PatientService {
   static async getPatientProfile(patientId: string) {
@@ -38,5 +43,65 @@ export class PatientService {
     );
 
     return patientSummaries;
+  }
+
+  static async getOrganizationAccessList(patientId: string) {
+    return db
+      .select()
+      .from(organization_access)
+      .where(eq(organization_access.patientId, patientId));
+  }
+
+  static async addOrganizationAccess(
+    patientId: string,
+    organizationId: string
+  ) {
+    const access = await db.query.organization_access.findFirst({
+      where: and(
+        eq(organization_access.patientId, patientId),
+        eq(organization_access.organizationId, organizationId)
+      )
+    });
+
+    if (access) {
+      throw ApiError.badRequest("Organization access has already been granted");
+    }
+
+    const newAccess = await db
+      .insert(organization_access)
+      .values({
+        patientId: patientId,
+        organizationId: organizationId,
+        status: "active",
+        grantedAt: new Date()
+      })
+      .returning();
+
+    return newAccess;
+  }
+
+  static async removeOrganizationAccess(patientId: string, accessId: string) {
+    const access = await db.query.organization_access.findFirst({
+      where: eq(organization_access.id, accessId as string)
+    });
+
+    if (!access) {
+      throw ApiError.badRequest("Invalid access id");
+    }
+
+    const removedAccess = await db
+      .update(organization_access)
+      .set({
+        status: "revoked",
+        revokedAt: new Date()
+      })
+      .where(
+        and(
+          eq(organization_access.patientId, patientId),
+          eq(organization_access.id, accessId)
+        )
+      ).returning;
+
+    return removedAccess;
   }
 }
