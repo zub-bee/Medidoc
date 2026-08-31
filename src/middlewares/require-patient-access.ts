@@ -48,6 +48,26 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
         );
       }
 
+      if (role === "patient") {
+        const [patientAccount] = await db
+          .select()
+          .from(patients)
+          .where(eq(patients.userId, req.user._id))
+          .limit(1);
+
+        if (!patientAccount) {
+          return next(ApiError.forbidden("Patient account does not exist"));
+        }
+
+        if (patientAccount.id !== patientId) {
+          return next(
+            ApiError.forbidden("You do not have access to this data")
+          );
+        }
+
+        req.patient_id = patientAccount.id;
+      }
+
       if (role === "admin") {
         const [admin] = await db
           .select()
