@@ -35,7 +35,7 @@ export class OtpService {
     const otpLock = await redis.get(`otp_lock:${email}`);
     if (otpLock) {
       throw ApiError.badRequest(
-        "Your Account is locked due to multiple failed attempts. Please try again after 30 minutes."
+        "Your Account is locked due to multiple failed attempts. Please try again after 1 hour."
       );
     }
 
@@ -123,7 +123,10 @@ export class OtpService {
           templateName
         });
       } catch (error) {
-        await Promise.allSettled([redis.del(otpKey), redis.del(otpCooldownKey)]);
+        await Promise.allSettled([
+          redis.del(otpKey),
+          redis.del(otpCooldownKey)
+        ]);
         throw error;
       }
     } catch (error) {
