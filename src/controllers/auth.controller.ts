@@ -160,9 +160,17 @@ export const getUserProfile = AsyncHandler(
       return next(ApiError.server("Failed to get user sessions!"));
     }
 
+    const roleProfileId = await AuthService.getRoleId(
+      user.role,
+      userId.toString()
+    );
+
+    const role = user.role;
+
     return ApiResponse.ok(res, "User profile fetched successfully", {
       user: {
         id: user.id,
+        [`${role}Id`]: roleProfileId,
         name: user.name,
         email: user.email,
         avatar: user.avatar,
