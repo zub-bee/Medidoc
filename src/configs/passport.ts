@@ -18,7 +18,8 @@ passport.use(
     {
       clientID: env.GITHUB_CLIENT_ID,
       clientSecret: env.GITHUB_CLIENT_SECRET,
-      callbackURL: env.GITHUB_REDIRECT_URI
+      callbackURL: env.GITHUB_REDIRECT_URI,
+      allRawEmails: true
     },
     function (
       accessToken: string,

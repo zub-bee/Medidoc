@@ -65,7 +65,7 @@ export class OAuthService {
       .insert(users)
       .values({
         name: user.name,
-        role: "patient", // TODO: this is a dummy to fix this type error. role comes from oauth later
+        role: "patient",
         email: user.email,
         isEmailVerified: user.isEmailVerified,
         provider: user.provider,

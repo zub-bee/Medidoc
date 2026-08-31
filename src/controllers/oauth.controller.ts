@@ -8,6 +8,8 @@ import { ApiError } from "../utils/api-error";
 import { OAuthService } from "../services/oauth.service";
 import { setAuthCookies } from "../helpers/cookie.helper";
 
+type GithubRawEmail = { value: string; primary: boolean; verified: boolean };
+
 //? LOGIN WITH GITHUB
 export const githubOAuth = AsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -17,12 +19,15 @@ export const githubOAuth = AsyncHandler(
       return next(ApiError.unauthorized("Authenticated failed!"));
     }
 
+    const emails = (data.emails as unknown as GithubRawEmail[]) || [];
+    const primaryEmail = emails.find(email => email.primary) || emails[0];
+
     const user = {
       provider: data?.provider as "local" | "google" | "github",
       providerId: data.id,
       name: data.displayName,
-      email: data?.emails && data?.emails[0]?.value,
-      isEmailVerified: true,
+      email: primaryEmail?.value,
+      isEmailVerified: primaryEmail?.verified === true,
       avatar: data.photos && data.photos[0].value,
       ip: req.ip || "Unknown",
       userAgent: req.get("user-agent") || req.headers["user-agent"] || "Unknown"
@@ -68,8 +73,7 @@ export const googleOAuth = AsyncHandler(
       providerId: data.id,
       name: data.displayName,
       email: data?.emails && data?.emails[0]?.value,
-      isEmailVerified:
-        (data?.emails && data?.emails[0]?.verified === true) || true,
+      isEmailVerified: data?.emails?.[0]?.verified === true,
       avatar: data.profileUrl || (data.photos && data.photos[0].value),
       ip: req.ip || "Unknown",
       userAgent: req.get("user-agent") || req.headers["user-agent"] || "Unknown"
