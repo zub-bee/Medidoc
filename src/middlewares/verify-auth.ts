@@ -39,7 +39,7 @@ export async function verifyAuthentication(
       return next(ApiError.unauthorized("Suspicious session"));
     }
 
-    if (session.expiresAt < new Date()) {
+    if (new Date(session.expiresAt) < new Date()) {
       return next(ApiError.unauthorized("Session expired"));
     }
 

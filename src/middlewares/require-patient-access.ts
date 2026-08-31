@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import db from "../configs/db";
 import { admins } from "../drizzle/schemas/admins.schema";
 import { practitioners } from "../drizzle/schemas/practitioners.schema";
+import { patients } from "../drizzle/schemas/patients.schema";
 import { organization_access } from "../drizzle/schemas/organization-access.schema";
 import { practitioner_access } from "../drizzle/schemas/practitioner-access.schema";
 import { ApiError } from "../utils/api-error";
@@ -10,7 +11,7 @@ import { UserRequest, UserRole } from "../types/user";
 
 interface PatientAccessOptions {
   paramName?: string;
-  roles?: Array<"admin" | "practitioner">;
+  roles?: Array<"admin" | "provider" | "practitioner" | "patient">;
 }
 
 export function requirePatientAccess(options: PatientAccessOptions = {}) {
@@ -33,12 +34,38 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
 
       const role = req.user.role;
 
-      if (roles && role && !roles.includes(role as "admin" | "practitioner")) {
+      if (
+        roles &&
+        role &&
+        !roles.includes(
+          role as "admin" | "provider" | "practitioner" | "patient"
+        )
+      ) {
         return next(
           ApiError.forbidden(
             "You do not have permission to access this resource"
           )
         );
+      }
+
+      if (role === "patient") {
+        const [patientAccount] = await db
+          .select()
+          .from(patients)
+          .where(eq(patients.userId, req.user._id))
+          .limit(1);
+
+        if (!patientAccount || patientAccount.id !== patientId) {
+          return next(
+            ApiError.forbidden(
+              "You do not have access to this patient's record"
+            )
+          );
+        }
+
+        req.patient_id = patientAccount.id;
+
+        return next();
       }
 
       if (role === "admin" || role === "provider") {

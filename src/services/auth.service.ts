@@ -437,8 +437,9 @@ export class AuthService {
       }
 
       if (user.lockUntil && new Date() < user.lockUntil) {
+        const remaining = getRemainingTime(user.lockUntil);
         throw ApiError.forbidden(
-          `Your account has been locked. Please try again after ${getRemainingTime(user.lockUntil).minutes} minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
+          `Your account has been locked. Please try again after ${remaining.hours} hours, ${remaining.minutes} minutes and ${remaining.seconds} seconds.`
         );
       }
 
@@ -673,7 +674,9 @@ export class AuthService {
             throw ApiError.unauthorized("Token mismatch.");
           }
         } catch (e) {
-          // Access token might be expired, which is normal for a refresh flow
+          if (e instanceof ApiError) {
+            throw e;
+          }
         }
       }
 
@@ -910,18 +913,16 @@ export class AuthService {
     }
 
     if (user.lockUntil && new Date(user.lockUntil) > new Date()) {
+      const remaining = getRemainingTime(user.lockUntil);
       throw ApiError.forbidden(
-        `Your account has been locked. Please try again after ${
-          getRemainingTime(user.lockUntil).minutes
-        } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
+        `Your account has been locked. Please try again after ${remaining.hours} hours, ${remaining.minutes} minutes and ${remaining.seconds} seconds.`
       );
     }
 
     if (user.failedLoginAttempts >= LOGIN_MAX_ATTEMPTS && user.lockUntil) {
+      const remaining = getRemainingTime(user.lockUntil);
       throw ApiError.forbidden(
-        `You have exceeded the maximum number of login attempts. Please try again after ${
-          getRemainingTime(user.lockUntil).minutes
-        } minutes and ${getRemainingTime(user.lockUntil).seconds} seconds.`
+        `You have exceeded the maximum number of login attempts. Please try again after ${remaining.hours} hours, ${remaining.minutes} minutes and ${remaining.seconds} seconds.`
       );
     }
 
@@ -1020,26 +1021,41 @@ export class AuthService {
       throw ApiError.unauthorized("Unauthorized access");
     }
 
+    if (user.deleteLockUntil && new Date() < user.deleteLockUntil) {
+      const remaining = getRemainingTime(user.deleteLockUntil);
+      throw ApiError.forbidden(
+        `Too many failed attempts. Please try again after ${remaining.hours} hours, ${remaining.minutes} minutes and ${remaining.seconds} seconds.`
+      );
+    }
+
     const isPasswordValid = await verifyPassword(password, user.password || "");
 
     if (!isPasswordValid) {
-      let lockUntil = null;
+      let deleteLockUntil = null;
 
-      let newAttempts = user.failedLoginAttempts + 1;
+      let newAttempts = user.deleteFailedAttempts + 1;
 
       if (newAttempts >= LOGIN_MAX_ATTEMPTS) {
-        lockUntil = new Date(Date.now() + LOCK_TIME_MS);
+        deleteLockUntil = new Date(Date.now() + LOCK_TIME_MS);
       }
 
       await db
         .update(users)
         .set({
-          failedLoginAttempts: newAttempts,
-          lockUntil
+          deleteFailedAttempts: newAttempts,
+          deleteLockUntil
         })
         .where(eq(users.id, user.id));
       throw ApiError.unauthorized("Invalid credentials");
     }
+
+    await db
+      .update(users)
+      .set({
+        deleteFailedAttempts: 0,
+        deleteLockUntil: null
+      })
+      .where(eq(users.id, user.id));
 
     const token = generateSecureToken();
     const hashedToken = generateHashedToken(token);
@@ -1114,10 +1130,11 @@ export class AuthService {
     } else if (type === "hard") {
       const avatar = user.avatar as AvatarData | string | null | undefined;
 
+      await db.delete(users).where(eq(users.id, userId));
+
       if (avatar && typeof avatar !== "string" && avatar.public_id) {
         await deleteFileFromCloudinary([avatar.public_id]);
       }
-      await db.delete(users).where(eq(users.id, userId));
       await AuthService.deleteAllUserSessions(userId);
     }
   }
@@ -1133,7 +1150,7 @@ export class AuthService {
     if (user.lockUntil && new Date(user.lockUntil) > new Date()) {
       const remainingTime = getRemainingTime(user.lockUntil);
       throw ApiError.badRequest(
-        `Your account has been locked. Please try again after ${remainingTime.minutes} minutes and ${remainingTime.seconds} seconds.`
+        `Your account has been locked. Please try again after ${remainingTime.hours} hours, ${remainingTime.minutes} minutes and ${remainingTime.seconds} seconds.`
       );
     }
 
@@ -1145,10 +1162,9 @@ export class AuthService {
       user?.reActivateAvailableAt &&
       new Date(user?.reActivateAvailableAt) > new Date()
     ) {
+      const remainingTime = getRemainingTime(user.reActivateAvailableAt);
       throw ApiError.forbidden(
-        `Your account has been locked. Please try again after ${
-          getRemainingTime(user.reActivateAvailableAt).minutes
-        } minutes and ${getRemainingTime(user.reActivateAvailableAt).seconds} seconds.`
+        `Your account has been locked. Please try again after ${remainingTime.hours} hours, ${remainingTime.minutes} minutes and ${remainingTime.seconds} seconds.`
       );
     }
 
