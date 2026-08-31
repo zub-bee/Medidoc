@@ -2,10 +2,16 @@ import { eq, sql, and, isNull } from "drizzle-orm";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
 import {
+  Episode,
+  episodes,
   organization_access,
   patient_summaries,
   PatientSummary,
-  practitioner_access
+  NewPatientSummary,
+  practitioner_access,
+  clinical_entries,
+  ClinicalEntry,
+  NewClinicalEntry
 } from "@/drizzle";
 import { ApiError } from "@/utils/api-error";
 
@@ -15,27 +21,29 @@ export class PatientService {
       where: eq(patients.id, patientId)
     });
 
-    console.log(patient);
-
     return patient;
   }
 
-  static async getPatientSummaries(patientId: string) {
+  static async getPatientSummaries(patientId: string, category?: string) {
     const data = await db
       .select({
         category: patient_summaries.category,
         summaries: sql<PatientSummary[]>`json_agg(${patient_summaries})`
       })
       .from(patient_summaries)
-      .where(eq(patient_summaries.patientId, patientId))
+      .where(
+        category
+          ? and(
+              eq(patient_summaries.patientId, patientId),
+              eq(
+                patient_summaries.category,
+                category as (typeof patient_summaries.category.enumValues)[number]
+              )
+            )
+          : eq(patient_summaries.patientId, patientId)
+      )
       .groupBy(patient_summaries.category);
 
-    // update the data structure for each category to have an array
-    const summaries = Object.fromEntries(
-      data.map(row => [row.category, row.summaries])
-    );
-
-    // remove category from summaries array
     const patientSummaries = Object.fromEntries(
       data.map(({ category, summaries }) => [
         category,
@@ -180,5 +188,132 @@ export class PatientService {
       .returning();
 
     return removedAccess;
+  }
+
+  static async getPatientEpisodes(patientId: string, statusQuery?: string) {
+    if (statusQuery === "open" || statusQuery === "closed") {
+      return await db
+        .select({
+          status: episodes.status,
+          episodes: sql<Episode[]>`json_agg(${episodes})`
+        })
+        .from(episodes)
+        .where(
+          and(
+            eq(episodes.patientId, patientId),
+            eq(episodes.status, statusQuery)
+          )
+        )
+        .groupBy(episodes.status);
+    }
+
+    return await db
+      .select({
+        status: episodes.status,
+        episodes: sql<Episode[]>`json_agg(${episodes})`
+      })
+      .from(episodes)
+      .where(eq(episodes.patientId, patientId))
+      .groupBy(episodes.status);
+  }
+
+  static async createNewEpisode(
+    patientId: string,
+    label: string,
+    organizationId: string
+  ) {
+    const newEpisode = await db
+      .insert(episodes)
+      .values({
+        patientId: patientId,
+        label: label,
+        organizationId: organizationId,
+        status: "open",
+        openedAt: new Date()
+      })
+      .returning();
+
+    return newEpisode;
+  }
+
+  static async createNewSummary(
+    patientId: string,
+    category: NewPatientSummary["category"],
+    data: Record<string, unknown>,
+    episodeId?: string
+  ) {
+    const newSummary = await db
+      .insert(patient_summaries)
+      .values({
+        patientId: patientId,
+        category: category,
+        data: data,
+        episodeId: episodeId ?? null,
+        versionNo: 0
+      })
+      .returning();
+
+    return newSummary;
+  }
+
+  static async getClinicalEntries(
+    patientId: string,
+    eventType?: string,
+    episodeId?: string
+  ) {
+    const data = await db
+      .select({
+        eventType: clinical_entries.eventType,
+        data: sql<ClinicalEntry[]>`json_agg(${clinical_entries})`
+      })
+      .from(clinical_entries)
+      .where(
+        and(
+          eq(clinical_entries.patientId, patientId),
+          eventType
+            ? eq(
+                clinical_entries.eventType,
+                eventType as (typeof clinical_entries.eventType.enumValues)[number]
+              )
+            : undefined,
+          episodeId ? eq(clinical_entries.episodeId, episodeId) : undefined
+        )
+      )
+      .groupBy(clinical_entries.eventType);
+
+    const patientSummaries = Object.fromEntries(
+      data.map(({ eventType, data }) => [
+        eventType,
+        data.map(({ eventType: _, patientId: __, ...rest }) => rest)
+      ])
+    );
+
+    return patientSummaries;
+  }
+
+  static async createClinicalEntry(
+    patientId: string,
+    eventType: NewClinicalEntry["eventType"],
+    data: Record<string, unknown>,
+    occurredAt: Date,
+    organizationId: string,
+    practitionerId: string,
+    episodeId?: string
+  ) {
+    const newClinicalEntry = await db
+      .insert(clinical_entries)
+      .values({
+        organizationId: organizationId,
+        patientId: patientId,
+        eventType: eventType,
+        data: data,
+        episodeId: episodeId ?? null,
+        occurredAt: occurredAt,
+        recordedAt: new Date(),
+        practitionerId: practitionerId
+      })
+      .returning();
+
+    return newClinicalEntry;
   }
 }

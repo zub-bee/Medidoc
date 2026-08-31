@@ -295,16 +295,83 @@ export const revokePractitionerAccess = AsyncHandler(
 );
 
 export const getEpisodes = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { status } = req.query;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const episodes = await PatientService.getPatientEpisodes(
+      patientId?.toString(),
+      status as string
+    );
+
+    if (!episodes) {
+      return next(
+        ApiError.server(
+          "Failed to get profile data. \
+                Please try again later!"
+        )
+      );
+    }
+
+    return ApiResponse.ok(res, "Episodes list fetched successfully", {
+      episodes: episodes
+    });
+  }
 );
 
 export const createEpisode = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { label } = req.body;
+
+    if (!req.practitioner?.organizationId) {
+      return next(
+        ApiError.forbidden("You do not have access to make this change")
+      );
+    }
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.badRequest("Patient account does not exist"));
+    }
+
+    const organizationId = req.practitioner?.organizationId;
+
+    const newEpisode = await PatientService.createNewEpisode(
+      patientId?.toString(),
+      label,
+      organizationId
+    );
+
+    if (!newEpisode) {
+      return next(
+        ApiError.server("Failed to create new episode. Please try again later!")
+      );
+    }
+
+    return ApiResponse.created(res, "Episode created successfully", newEpisode);
+  }
 );
 
 export const getPatientSummaries = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const { patientId } = req.params;
+    const { category } = req.query;
 
     if (!patientId) {
       return next(
@@ -313,7 +380,8 @@ export const getPatientSummaries = AsyncHandler(
     }
 
     const patientSummaries = await PatientService.getPatientSummaries(
-      patientId?.toString()
+      patientId?.toString(),
+      category?.toString()
     );
 
     if (!patientSummaries) {
@@ -325,20 +393,135 @@ export const getPatientSummaries = AsyncHandler(
       );
     }
 
-    return ApiResponse.ok(res, "User profile fetched successfully", {
+    return ApiResponse.ok(res, "Patient summaries fetched successfully", {
       patient_summaries: patientSummaries
     });
   }
 );
 
 export const createSummary = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { category, data, episode_id } = req.body;
+
+    if (!req.practitioner?.organizationId) {
+      return next(
+        ApiError.forbidden("You do not have access to make this change")
+      );
+    }
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.badRequest("Patient account does not exist"));
+    }
+
+    const newSummary = await PatientService.createNewSummary(
+      patientId?.toString(),
+      category,
+      data,
+      episode_id
+    );
+
+    if (!newSummary) {
+      return next(
+        ApiError.server("Failed to create new episode. Please try again later!")
+      );
+    }
+
+    return ApiResponse.created(res, "Episode created successfully", newSummary);
+  }
 );
 
-export const getClinicalEnties = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+export const getClinicalEntries = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { event_type, episode_id } = req.query;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const clinicalEntries = await PatientService.getClinicalEntries(
+      patientId?.toString(),
+      event_type?.toString(),
+      episode_id?.toString()
+    );
+
+    if (!clinicalEntries) {
+      return next(
+        ApiError.server(
+          "Failed to get profile data. \
+                Please try again later!"
+        )
+      );
+    }
+
+    return ApiResponse.ok(
+      res,
+      "CLinical entries fetched successfully",
+      clinicalEntries
+    );
+  }
 );
 
 export const createClinicalEntry = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { event_type, data, occurred_at, episode_id } = req.body;
+
+    if (!req.practitioner?.organizationId) {
+      return next(
+        ApiError.forbidden("You do not have access to make this change")
+      );
+    }
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.badRequest("Patient account does not exist"));
+    }
+
+    const newEpisode = await PatientService.createClinicalEntry(
+      patientId?.toString(),
+      event_type.toString(),
+      data,
+      occurred_at,
+      req.practitioner.organizationId,
+      req.practitioner.id,
+      episode_id
+    );
+
+    if (!newEpisode) {
+      return next(
+        ApiError.server(
+          "Failed to create new clinical entry. Please try again later!"
+        )
+      );
+    }
+
+    return ApiResponse.created(
+      res,
+      "Clinical entry created successfully",
+      newEpisode
+    );
+  }
 );

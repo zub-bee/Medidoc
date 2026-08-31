@@ -1,16 +1,15 @@
 import { Request, Response, NextFunction } from "express";
-import z, { ZodError, type ZodObject } from "zod";
+import z, { ZodError, type ZodObject, ZodRawShape } from "zod";
 
 import { ApiError } from "../utils/api-error";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validateRequest = (
-  schema: ZodObject<any>,
+  schema: ZodObject<ZodRawShape>,
   source: "body" | "params" = "body"
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req[source]);
+      req[source] = schema.parse(req[source]);
 
       next();
     } catch (error) {

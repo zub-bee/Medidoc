@@ -15,7 +15,12 @@ import {
   revokeOrganizationAccess,
   getPractiitonerAccess,
   revokePractitionerAccess,
-  assignPractitionerAccess
+  assignPractitionerAccess,
+  getEpisodes,
+  createEpisode,
+  createSummary,
+  getClinicalEntries,
+  createClinicalEntry
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -37,12 +42,14 @@ import { CreateAppointmentSchema } from "../validators/appointment";
 import { CreateInvoiceSchema } from "../validators/invoice";
 import { CreatePaymentSchema } from "../validators/payment";
 import { CreateConsentFormSchema } from "../validators/consent-form";
-import { UpdateProfileSchema } from "@/validators/auth";
 import {
   UpdatePatientProfileSchema,
   OrganizationAccessSchema,
   PractitionerAccessSchema,
-  AccessIdParamsSchema
+  AccessIdParamsSchema,
+  NewEpisodeLabelSchema,
+  NewSummarySchema,
+  NewClinicalEntrySchema
 } from "@/validators/patient";
 
 const router = Router();
@@ -119,16 +126,16 @@ router.post(
 router.get(
   "/:patientId/episodes",
   verifyAuthentication,
-  requirePatientAccess({ roles: ["admin", "practitioner", "patient"] })
-  // handler for episodes
+  requirePatientAccess({ roles: ["admin", "practitioner", "patient"] }),
+  getEpisodes
 );
 
 router.post(
   "/:patientId/episodes",
-  // validate request body
+  validateRequest(NewEpisodeLabelSchema),
   verifyAuthentication,
-  requirePatientAccess({ roles: ["practitioner"] })
-  // handler for episodes
+  requirePatientAccess({ roles: ["practitioner"] }),
+  createEpisode
 );
 
 router.get(
@@ -140,25 +147,25 @@ router.get(
 
 router.post(
   "/:patientId/summaries",
-  // validate request body
+  validateRequest(NewSummarySchema),
   verifyAuthentication,
-  requirePatientAccess({ roles: ["practitioner"] })
-  // handler for episodes
+  requirePatientAccess({ roles: ["practitioner"] }),
+  createSummary
 );
 
 router.get(
   "/:patientId/clinical-entries",
   verifyAuthentication,
-  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] })
-  // handler for clinical entries
+  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] }),
+  getClinicalEntries
 );
 
 router.post(
   "/:patientId/clinical-entries",
-  // validate request body
+  validateRequest(NewClinicalEntrySchema),
   verifyAuthentication,
-  requirePatientAccess({ roles: ["practitioner"] })
-  // handler for clinical entries
+  requirePatientAccess({ roles: ["practitioner"] }),
+  createClinicalEntry
 );
 
 router.get(
