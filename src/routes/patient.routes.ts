@@ -5,9 +5,11 @@ import { verifyAuthentication } from "../middlewares/verify-auth";
 import { requirePatientUser } from "../middlewares/require-patient";
 import { requirePatientAccess } from "../middlewares/require-patient-access";
 import upload from "../middlewares/upload-file";
+import { checkUserAccountRestriction } from "../middlewares/user-account-restriction";
 import {
   handlePatientProfile,
-  getPatientSummaries
+  getPatientSummaries,
+  updatePatientProfile
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -50,10 +52,11 @@ router.get(
 
 router.patch(
   "/:patientId",
-  verifyAuthentication,
   validateRequest(UpdatePatientProfileSchema),
-  requirePatientAccess()
-  // handler for Patient Profile
+  verifyAuthentication,
+  requirePatientUser,
+  checkUserAccountRestriction,
+  updatePatientProfile
 );
 
 router.get(

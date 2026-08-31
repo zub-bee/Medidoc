@@ -4,6 +4,9 @@ import { ApiResponse } from "@/utils/api-response";
 import { PatientService } from "@/services/patient.service";
 import { Request, Response, NextFunction } from "express";
 import { AsyncHandler } from "@/utils/async-handler";
+import { patients } from "../drizzle/schemas/patients.schema";
+import db from "../configs/db";
+import { eq } from "drizzle-orm";
 
 export const handlePatientProfile = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -36,7 +39,51 @@ export const handlePatientProfile = AsyncHandler(
 );
 
 export const updatePatientProfile = AsyncHandler(
-  async (req: UserRequest, res: Response, next: NextFunction) => {}
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const data = req.body;
+    const { name, address, phone } = data;
+
+    if (!req.patient_id) {
+      return next(ApiError.unauthorized("Unauthorized access"));
+    }
+
+    const patientProfile = await PatientService.getPatientProfile(
+      req.patient_id.toString()
+    );
+
+    if (!patientProfile) {
+      return next(ApiError.notFound("Sorry no patient profile not found"));
+    }
+
+    const updateData: Record<string, unknown> = {};
+    if (name) updateData.name = name;
+    if (address) updateData.address = address;
+    if (phone) updateData.phone = phone;
+
+    if (Object.keys(updateData).length > 0) {
+      await db
+        .update(patients)
+        .set(updateData)
+        .where(eq(patients.id, patientProfile.id));
+    }
+
+    const updatedUser = await PatientService.getPatientProfile(
+      patientProfile.id
+    );
+
+    return ApiResponse.Success(res, "Profile updated successfully!", {
+      user: {
+        id: updatedUser?.id,
+        name: updatedUser?.fullName,
+        email: updatedUser?.email,
+        phone: updatedUser?.phone,
+        address: updatedUser?.address,
+        nin: updatedUser?.nin,
+        gender: updatedUser?.nin,
+        updatedAt: updatedUser?.updatedAt
+      }
+    });
+  }
 );
 
 export const getPatientSummaries = AsyncHandler(
