@@ -359,7 +359,13 @@ export class AuthService {
             { error, userEmail, name },
             "Failed to create patient profile"
           );
-          throw ApiError.server("Failed to create patient profile");
+
+          await redisClient.del(`user:${email}:${hashCode}`);
+          await redisClient.del(`user:pending:${email}`);
+
+          throw ApiError.server(
+            "Failed to create patient profile please try again later"
+          );
         }
       }
 
@@ -386,7 +392,11 @@ export class AuthService {
             { error, userEmail, name },
             "Failed to create organization profile"
           );
-          throw ApiError.server("Failed to create organization profile");
+          await redisClient.del(`user:${email}:${hashCode}`);
+          await redisClient.del(`user:pending:${email}`);
+          throw ApiError.server(
+            "Failed to create organization profile, please try again later"
+          );
         }
       }
 
@@ -616,11 +626,11 @@ export class AuthService {
   static async getRoleId(userRole: UserRole, userId: string) {
     if (userRole === "patient") {
       const patientId = await db.query.patients.findFirst({
-        columns: { userId: true },
+        columns: { id: true },
         where: eq(patients.userId, userId)
       });
 
-      return patientId?.userId;
+      return patientId?.id;
     }
 
     if (userRole === "provider") {
