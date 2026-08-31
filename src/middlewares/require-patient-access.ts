@@ -27,8 +27,8 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
         return next(ApiError.forbidden("Authentication required"));
       }
 
-      const patientId = req.params[paramName];
-      if (!patientId || typeof patientId !== "string") {
+      const patientId = req.params[paramName] as string;
+      if (!patientId) {
         return next(ApiError.badRequest(`Missing ${paramName} in request`));
       }
 
@@ -66,6 +66,8 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
         }
 
         req.patient_id = patientAccount.id;
+
+        return next();
       }
 
       if (role === "admin") {
