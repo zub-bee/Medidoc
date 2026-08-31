@@ -7,7 +7,7 @@ import { AsyncHandler } from "@/utils/async-handler";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
 import { eq, and } from "drizzle-orm";
-import { practitioners } from "@/drizzle";
+import { practitioners, User } from "@/drizzle";
 
 export const handlePatientProfile = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -294,6 +294,14 @@ export const revokePractitionerAccess = AsyncHandler(
   }
 );
 
+export const getEpisodes = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
+);
+
+export const createEpisode = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
+);
+
 export const getPatientSummaries = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const { patientId } = req.params;
@@ -321,4 +329,16 @@ export const getPatientSummaries = AsyncHandler(
       patient_summaries: patientSummaries
     });
   }
+);
+
+export const createSummary = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
+);
+
+export const getClinicalEnties = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
+);
+
+export const createClinicalEntry = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {}
 );
