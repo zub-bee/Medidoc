@@ -6,9 +6,16 @@ import { practitioners } from "../drizzle/schemas/practitioners.schema";
 import { organization_access } from "../drizzle/schemas/organization-access.schema";
 import { practitioner_access } from "../drizzle/schemas/practitioner-access.schema";
 import { ApiError } from "../utils/api-error";
-import { UserRequest } from "../types/user";
+import { UserRequest, UserRole } from "../types/user";
 
-export function requirePatientAccess(paramName: string = "patientId") {
+interface PatientAccessOptions {
+  paramName?: string;
+  roles?: Array<"admin" | "practitioner">;
+}
+
+export function requirePatientAccess(options: PatientAccessOptions = {}) {
+  const { paramName = "patientId", roles } = options;
+
   return async (
     req: UserRequest,
     _res: Response,
@@ -24,9 +31,17 @@ export function requirePatientAccess(paramName: string = "patientId") {
         return next(ApiError.badRequest(`Missing ${paramName} in request`));
       }
 
-      let organizationId: string | undefined;
+      const role = req.user.role;
 
-      if (req.user.role === "admin" || req.user.role === "provider") {
+      if (roles && role && !roles.includes(role as "admin" | "practitioner")) {
+        return next(
+          ApiError.forbidden(
+            "You do not have permission to access this resource"
+          )
+        );
+      }
+
+      if (role === "admin" || role === "provider") {
         const [admin] = await db
           .select()
           .from(admins)
@@ -38,8 +53,31 @@ export function requirePatientAccess(paramName: string = "patientId") {
         }
 
         req.admin = { id: admin.id, organizationId: admin.organizationId };
-        organizationId = admin.organizationId;
-      } else if (req.user.role === "practitioner") {
+
+        const [orgGrant] = await db
+          .select()
+          .from(organization_access)
+          .where(
+            and(
+              eq(organization_access.patientId, patientId),
+              eq(organization_access.organizationId, admin.organizationId),
+              eq(organization_access.status, "active")
+            )
+          )
+          .limit(1);
+
+        if (!orgGrant) {
+          return next(
+            ApiError.forbidden(
+              "Your organization does not have active access to this patient's record"
+            )
+          );
+        }
+
+        return next();
+      }
+
+      if (role === "practitioner") {
         const [practitioner] = await db
           .select()
           .from(practitioners)
@@ -84,31 +122,9 @@ export function requirePatientAccess(paramName: string = "patientId") {
         }
 
         return next();
-      } else {
-        return next(ApiError.forbidden("Staff access required"));
       }
 
-      const [orgGrant] = await db
-        .select()
-        .from(organization_access)
-        .where(
-          and(
-            eq(organization_access.patientId, patientId),
-            eq(organization_access.organizationId, organizationId!),
-            eq(organization_access.status, "active")
-          )
-        )
-        .limit(1);
-
-      if (!orgGrant) {
-        return next(
-          ApiError.forbidden(
-            "Your organization does not have active access to this patient's record"
-          )
-        );
-      }
-
-      return next();
+      return next(ApiError.forbidden("Staff access required"));
     } catch (err) {
       return next(ApiError.server("Something went wrong"));
     }
