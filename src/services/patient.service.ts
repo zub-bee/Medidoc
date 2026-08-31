@@ -1,4 +1,4 @@
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, isNull } from "drizzle-orm";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
 import {
@@ -49,7 +49,13 @@ export class PatientService {
     return db
       .select()
       .from(organization_access)
-      .where(eq(organization_access.patientId, patientId));
+      .where(
+        and(
+          eq(organization_access.patientId, patientId),
+          eq(organization_access.status, "active"),
+          isNull(organization_access.revokedAt)
+        )
+      );
   }
 
   static async addOrganizationAccess(
