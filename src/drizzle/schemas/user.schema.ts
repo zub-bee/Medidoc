@@ -20,6 +20,8 @@ export const users = pgTable("users", {
   lastLoginAt: timestamp("last_login_at"),
   failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
   lockUntil: timestamp("lock_until"),
+  deleteFailedAttempts: integer("delete_failed_attempts").default(0).notNull(),
+  deleteLockUntil: timestamp("delete_lock_until"),
   avatar: json("avatar"), // { public_id: string, url: string, size: number }
 
   provider: text("provider", { enum: ["local", "google", "github"] })
