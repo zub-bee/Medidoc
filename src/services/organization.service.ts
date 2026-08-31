@@ -175,18 +175,22 @@ export class OrganizationService {
       return targetPractitioner;
     }
 
-    const [approvedPractitioner] = await db
-      .update(practitioners)
-      .set({ status: "active", approvedBy: approvingAdmin.id })
-      .where(eq(practitioners.id, targetPractitionerId))
-      .returning();
+    const [approvedPractitioner] = await db.transaction(async tx => {
+      const [updatedPractitioner] = await tx
+        .update(practitioners)
+        .set({ status: "active", approvedBy: approvingAdmin.id })
+        .where(eq(practitioners.id, targetPractitionerId))
+        .returning();
 
-    await db.insert(audit_logs).values({
-      actorType: "admin",
-      actorId: approvingAdmin.id,
-      action: "update",
-      targetTable: "practitioners",
-      targetId: targetPractitionerId
+      await tx.insert(audit_logs).values({
+        actorType: "admin",
+        actorId: approvingAdmin.id,
+        action: "update",
+        targetTable: "practitioners",
+        targetId: targetPractitionerId
+      });
+
+      return [updatedPractitioner];
     });
 
     return approvedPractitioner;
