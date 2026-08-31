@@ -118,54 +118,53 @@ router.post(
 
 router.get(
   "/:patientId/episodes",
-  verifyAuthentication
-  // requirepatientaccess
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "practitioner", "patient"] })
   // handler for episodes
 );
 
 router.post(
   "/:patientId/episodes",
   // validate request body
-  verifyAuthentication
-  // require patient access
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] })
   // handler for episodes
 );
 
 router.get(
   "/:patientId/summaries",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] }),
   getPatientSummaries
 );
 
 router.post(
   "/:patientId/summaries",
   // validate request body
-  verifyAuthentication
-  // require patient access
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] })
   // handler for episodes
 );
 
 router.get(
   "/:patientId/clinical-entries",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] })
   // handler for clinical entries
 );
 
 router.post(
   "/:patientId/clinical-entries",
   // validate request body
-  verifyAuthentication
-  // require patient access
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] })
   // handler for clinical entries
 );
 
 router.get(
   "/:patientId/appointments",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
   listAppointments
 );
 
@@ -188,7 +187,7 @@ router.patch(
 router.get(
   "/:patientId/invoices",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
   listInvoices
 );
 
