@@ -38,8 +38,6 @@ export const handlePatientProfile = AsyncHandler(
 
 export const getPatientSummaries = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const authpatientId = req?.patient_id;
-    const role = req?.user?.role;
     const { patientId } = req.params;
 
     if (!patientId) {
@@ -47,16 +45,6 @@ export const getPatientSummaries = AsyncHandler(
         ApiError.badRequest("Please input an appropriate patient id")
       );
     }
-
-    // check if the role is patient and if it's the
-    // auth user by checking if it matches the authpatientId
-
-    // check if it's an admin or practitioner, check the role
-    // check if the patient has given access to this user
-
-    // if (!patientId || role !== "patient") {
-    //     return next(ApiError.unauthorized("Unauthorized access"));
-    // }
 
     const patientSummaries = await PatientService.getPatientSummaries(
       patientId?.toString()
