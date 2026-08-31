@@ -123,7 +123,8 @@ export default async function main() {
     id: id(),
     practitioner_id: doctorId,
     patient_id: patientId,
-    granted_by: orgId,
+    organization_id: orgId,
+    granted_by: adminId,
     status: "active",
     granted_at: daysAgo(119),
     revoked_at: null
@@ -133,7 +134,8 @@ export default async function main() {
     id: id(),
     practitioner_id: nurseId,
     patient_id: patientId,
-    granted_by: orgId,
+    organization_id: orgId,
+    granted_by: adminId,
     status: "active",
     granted_at: daysAgo(119),
     revoked_at: null

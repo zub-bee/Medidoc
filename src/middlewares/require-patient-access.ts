@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { and, eq } from "drizzle-orm";
 import db from "../configs/db";
 import { admins } from "../drizzle/schemas/admins.schema";
+import { providers } from "../drizzle/schemas/providers.schema";
 import { practitioners } from "../drizzle/schemas/practitioners.schema";
 import { patients } from "../drizzle/schemas/patients.schema";
 import { organization_access } from "../drizzle/schemas/organization-access.schema";
@@ -90,6 +91,52 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
             and(
               eq(organization_access.patientId, patientId),
               eq(organization_access.organizationId, admin.organizationId),
+              eq(organization_access.status, "active")
+            )
+          )
+          .limit(1);
+
+        if (!orgGrant) {
+          return next(
+            ApiError.forbidden(
+              "Your organization does not have active access to this patient's record"
+            )
+          );
+        }
+
+        return next();
+      }
+
+      if (role === "provider") {
+        const [provider] = await db
+          .select()
+          .from(providers)
+          .where(eq(providers.userId, req.user._id))
+          .limit(1);
+
+        if (!provider || provider.status !== "verified") {
+          return next(
+            ApiError.forbidden("Provider organization access required")
+          );
+        }
+
+        const [admin] = await db
+          .select()
+          .from(admins)
+          .where(eq(admins.userId, req.user._id))
+          .limit(1);
+
+        if (admin) {
+          req.admin = { id: admin.id, organizationId: provider.id };
+        }
+
+        const [orgGrant] = await db
+          .select()
+          .from(organization_access)
+          .where(
+            and(
+              eq(organization_access.patientId, patientId),
+              eq(organization_access.organizationId, provider.id),
               eq(organization_access.status, "active")
             )
           )

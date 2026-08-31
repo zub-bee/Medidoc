@@ -374,6 +374,7 @@ export class AuthService {
           const [createdProvider] = await tx
             .insert(providers)
             .values({
+              userId: createdUser.id,
               name: organization.name,
               cacNumber: organization.cacNumber,
               status: "pending"

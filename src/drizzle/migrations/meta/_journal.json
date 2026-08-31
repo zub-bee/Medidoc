@@ -71,6 +71,20 @@
       "when": 1788179302870,
       "tag": "0009_bumpy_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788193423944,
+      "tag": "0010_add_provider_user_id",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788205424472,
+      "tag": "0011_add_practitioner_access_organization_id",
+      "breakpoints": true
     }
   ]
 }
