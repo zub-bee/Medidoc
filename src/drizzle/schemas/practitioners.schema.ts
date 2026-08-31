@@ -15,9 +15,7 @@ export const practitioners = pgTable("practitioners", {
   fullName: text("name").notNull(),
   email: text("email").notNull().unique(),
   //just noticed a bug here, can't fix it yet. trying to round off the others first. what approved by references here is the provider id which in this case is the org. but it shoudl reference the admin that approved
-  approvedBy: uuid("approved_by")
-    .references(() => admins.id)
-    .notNull(),
+  approvedBy: uuid("approved_by").references(() => admins.id),
   status: text("status", { enum: ["pending", "active", "revoked"] }).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -141,7 +141,6 @@ export class OrganizationService {
           organizationId,
           fullName: name,
           email,
-          approvedBy: organizationId,
           status: "pending"
         })
         .returning();
@@ -174,7 +173,7 @@ export class OrganizationService {
 
     const [approvedPractitioner] = await db
       .update(practitioners)
-      .set({ status: "active" })
+      .set({ status: "active", approvedBy: approvingAdmin.id })
       .where(eq(practitioners.id, targetPractitionerId))
       .returning();
 
