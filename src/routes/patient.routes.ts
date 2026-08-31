@@ -3,10 +3,32 @@ import { validateRequest } from "../middlewares/validate-request";
 import { validateObjectId } from "../middlewares/validate-id";
 import { verifyAuthentication } from "../middlewares/verify-auth";
 import { requirePatientUser } from "../middlewares/require-patient";
+import { requirePatientAccess } from "../middlewares/require-patient-access";
+import upload from "../middlewares/upload-file";
 import {
   handlePatientProfile,
   getPatientSummaries
 } from "../controllers/patient.controller";
+import {
+  listAppointments,
+  createAppointment,
+  checkInAppointment
+} from "../controllers/appointment.controller";
+import {
+  listInvoices,
+  createInvoice,
+  markInvoicePaid
+} from "../controllers/invoice.controller";
+import { listPayments, createPayment } from "../controllers/payment.controller";
+import {
+  listConsentForms,
+  createConsentForm,
+  signConsentForm
+} from "../controllers/consent-form.controller";
+import { CreateAppointmentSchema } from "../validators/appointment";
+import { CreateInvoiceSchema } from "../validators/invoice";
+import { CreatePaymentSchema } from "../validators/payment";
+import { CreateConsentFormSchema } from "../validators/consent-form";
 
 const router = Router();
 
@@ -108,9 +130,8 @@ router.post(
 router.get(
   "/:patientId/summaries",
   verifyAuthentication,
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  getPatientSummaries // change this to check for patient access not user
+  requirePatientAccess(),
+  getPatientSummaries
 );
 
 router.post(
@@ -139,66 +160,89 @@ router.post(
 
 router.get(
   "/:patientId/appointments",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  // handler for appointments
+  verifyAuthentication,
+  requirePatientAccess(),
+  listAppointments
 );
 
 router.post(
-  "/:patient/appointments",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for appointments
-);
-
-router.get(
   "/:patientId/appointments",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  // handler for appointments
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider", "practitioner"] }),
+  validateRequest(CreateAppointmentSchema),
+  createAppointment
 );
 
-router.post(
-  "/:patient/appointments",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for appointments
+router.patch(
+  "/:patientId/appointments/:appointmentId/check-in",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider"] }),
+  validateObjectId("appointmentId"),
+  checkInAppointment
 );
 
 router.get(
   "/:patientId/invoices",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  // handler for invoices
+  verifyAuthentication,
+  requirePatientAccess(),
+  listInvoices
 );
 
 router.post(
-  "/:patient/invoices",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for invoices
+  "/:patientId/invoices",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider"] }),
+  validateRequest(CreateInvoiceSchema),
+  createInvoice
+);
+
+router.patch(
+  "/:patientId/invoices/:invoiceId/mark-paid",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider"] }),
+  validateObjectId("invoiceId"),
+  markInvoicePaid
+);
+
+router.get(
+  "/:patientId/invoices/:invoiceId/payments",
+  verifyAuthentication,
+  requirePatientAccess(),
+  validateObjectId("invoiceId"),
+  listPayments
+);
+
+router.post(
+  "/:patientId/invoices/:invoiceId/payments",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider"] }),
+  validateObjectId("invoiceId"),
+  validateRequest(CreatePaymentSchema),
+  createPayment
 );
 
 router.get(
   "/:patientId/consent-forms",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  // handler for consent-forms
+  verifyAuthentication,
+  requirePatientAccess(),
+  listConsentForms
 );
 
 router.post(
-  "/:patient/consent-forms",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for consent-forms
+  "/:patientId/consent-forms",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] }),
+  upload.single("document"),
+  validateRequest(CreateConsentFormSchema),
+  createConsentForm
+);
+
+router.patch(
+  "/:patientId/consent-forms/:consentFormId/sign",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["patient"] }),
+  validateObjectId("consentFormId"),
+  signConsentForm
 );
 
 export default router;
