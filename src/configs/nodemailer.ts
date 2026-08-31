@@ -1,11 +1,11 @@
-import { logger } from "@/utils/logger";
 import nodemailer from "nodemailer";
+import env from "./env";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD
+    user: env.GMAIL_USER,
+    pass: env.GMAIL_APP_PASSWORD
   }
 });
 

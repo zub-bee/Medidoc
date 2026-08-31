@@ -27,6 +27,9 @@ export const envSchema = z.object({
   RESEND_API_KEY: z.string(),
   EMAIL_FROM: z.email(),
 
+  GMAIL_USER: z.email(),
+  GMAIL_APP_PASSWORD: z.string(),
+
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
