@@ -78,7 +78,7 @@ export default async function main() {
     organization_id: orgId,
     name: "Dr. Funmi Adeyemi",
     email: "funmi.adeyemi@lagosgeneral.ng",
-    approved_by: orgId,
+    approved_by: adminId,
     status: "active",
     created_at: daysAgo(150),
     updated_at: daysAgo(150)
@@ -90,7 +90,7 @@ export default async function main() {
     organization_id: orgId,
     name: "Nurse Ijeoma Bello",
     email: "ijeoma.bello@lagosgeneral.ng",
-    approved_by: orgId,
+    approved_by: adminId,
     status: "active",
     created_at: daysAgo(150),
     updated_at: daysAgo(150)
