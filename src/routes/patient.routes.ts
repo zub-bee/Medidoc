@@ -29,6 +29,8 @@ import { CreateAppointmentSchema } from "../validators/appointment";
 import { CreateInvoiceSchema } from "../validators/invoice";
 import { CreatePaymentSchema } from "../validators/payment";
 import { CreateConsentFormSchema } from "../validators/consent-form";
+import { UpdateProfileSchema } from "@/validators/auth";
+import { UpdatePatientProfileSchema } from "@/validators/patient";
 
 const router = Router();
 
@@ -41,15 +43,16 @@ router.get(
 
 router.get(
   "/:patientId",
-  verifyAuthentication
-  // require patient access
-  // handler for Patient Profile
+  verifyAuthentication,
+  requirePatientAccess(),
+  handlePatientProfile
 );
 
 router.patch(
   "/:patientId",
-  verifyAuthentication
-  // require patient access
+  verifyAuthentication,
+  validateRequest(UpdatePatientProfileSchema),
+  requirePatientAccess()
   // handler for Patient Profile
 );
 
