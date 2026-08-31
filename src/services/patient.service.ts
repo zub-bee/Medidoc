@@ -4,7 +4,8 @@ import db from "../configs/db";
 import {
   organization_access,
   patient_summaries,
-  PatientSummary
+  PatientSummary,
+  practitioner_access
 } from "@/drizzle";
 import { ApiError } from "@/utils/api-error";
 
@@ -58,6 +59,19 @@ export class PatientService {
       );
   }
 
+  static async getPractitionerAccessList(patientId: string) {
+    return db
+      .select()
+      .from(practitioner_access)
+      .where(
+        and(
+          eq(practitioner_access.patientId, patientId),
+          eq(practitioner_access.status, "active"),
+          isNull(practitioner_access.revokedAt)
+        )
+      );
+  }
+
   static async addOrganizationAccess(
     patientId: string,
     organizationId: string
@@ -86,6 +100,36 @@ export class PatientService {
     return newAccess;
   }
 
+  static async addPractitionerAccess(
+    adminId: string,
+    patientId: string,
+    practitionerId: string
+  ) {
+    const access = await db.query.practitioner_access.findFirst({
+      where: and(
+        eq(practitioner_access.patientId, patientId),
+        eq(practitioner_access.id, practitionerId)
+      )
+    });
+
+    if (access) {
+      throw ApiError.badRequest("Organization access has already been granted");
+    }
+
+    const newAccess = await db
+      .insert(practitioner_access)
+      .values({
+        patientId: patientId,
+        practitionerId: practitionerId,
+        grantedBy: adminId,
+        status: "active",
+        grantedAt: new Date()
+      })
+      .returning();
+
+    return newAccess;
+  }
+
   static async removeOrganizationAccess(patientId: string, accessId: string) {
     const access = await db.query.organization_access.findFirst({
       where: eq(organization_access.id, accessId as string)
@@ -106,7 +150,34 @@ export class PatientService {
           eq(organization_access.patientId, patientId),
           eq(organization_access.id, accessId)
         )
-      ).returning;
+      )
+      .returning();
+
+    return removedAccess;
+  }
+
+  static async removePractitionerAccess(patientId: string, accessId: string) {
+    const access = await db.query.practitioner_access.findFirst({
+      where: eq(practitioner_access.id, accessId)
+    });
+
+    if (!access) {
+      throw ApiError.badRequest("Invalid access id");
+    }
+
+    const removedAccess = await db
+      .update(practitioner_access)
+      .set({
+        status: "revoked",
+        revokedAt: new Date()
+      })
+      .where(
+        and(
+          eq(practitioner_access.patientId, patientId),
+          eq(practitioner_access.id, accessId)
+        )
+      )
+      .returning();
 
     return removedAccess;
   }

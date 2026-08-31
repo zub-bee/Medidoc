@@ -11,3 +11,11 @@ export const UpdatePatientProfileSchema = z.object({
 export const OrganizationAccessSchema = z.object({
   organization_id: z.uuid({ error: "Organization id must be in uuid format" })
 });
+
+export const PractitionerAccessSchema = z.object({
+  practitioner_id: z.uuid({ error: "Organization id must be in uuid format" })
+});
+
+export const AccessIdParamsSchema = z.object({
+  accessId: z.uuid({ error: "accessId must be a valid UUID" })
+});

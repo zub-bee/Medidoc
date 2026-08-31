@@ -4,10 +4,13 @@ import z, { ZodError, type ZodObject } from "zod";
 import { ApiError } from "../utils/api-error";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const validateRequest = (schema: ZodObject<any>) => {
+export const validateRequest = (
+  schema: ZodObject<any>,
+  source: "body" | "params" = "body"
+) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.body);
+      schema.parse(req[source]);
 
       next();
     } catch (error) {

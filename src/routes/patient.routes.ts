@@ -12,7 +12,10 @@ import {
   updatePatientProfile,
   getOrganizationAccess,
   assignOrganizationAccess,
-  revokeOrganizationAccess
+  revokeOrganizationAccess,
+  getPractiitonerAccess,
+  revokePractitionerAccess,
+  assignPractitionerAccess
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -35,9 +38,12 @@ import { CreateInvoiceSchema } from "../validators/invoice";
 import { CreatePaymentSchema } from "../validators/payment";
 import { CreateConsentFormSchema } from "../validators/consent-form";
 import { UpdateProfileSchema } from "@/validators/auth";
-import { UpdatePatientProfileSchema,
-  OrganizationAccessSchema
- } from "@/validators/patient";
+import {
+  UpdatePatientProfileSchema,
+  OrganizationAccessSchema,
+  PractitionerAccessSchema,
+  AccessIdParamsSchema
+} from "@/validators/patient";
 
 const router = Router();
 
@@ -81,6 +87,7 @@ router.post(
 
 router.post(
   "/:patientId/organization-access/:accessId/revoke",
+  validateRequest(AccessIdParamsSchema, "params"),
   verifyAuthentication,
   requirePatientUser,
   revokeOrganizationAccess
@@ -88,35 +95,25 @@ router.post(
 
 router.get(
   "/:patientId/practitioner-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
-);
-
-router.post(
-  // some of these paths should only support the
-  // signed in patient user
-  // simply because only one user would be doing this
-  "/:patientId/practitioner-access/:accessId/revoke",
-  // validate request body
   verifyAuthentication,
-  requirePatientUser
-  // handler for access rovoke
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
+  getPractiitonerAccess
 );
 
 router.post(
   "/:patientId/practitioner-access",
-  // validate req body
-  verifyAuthentication
-  // req patient access
-  // handler for access list
+  validateRequest(PractitionerAccessSchema),
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin"] }),
+  assignPractitionerAccess
 );
 
-router.get(
-  "/:patientId/practitioner-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
+router.post(
+  "/:patientId/practitioner-access/:accessId/revoke",
+  validateRequest(AccessIdParamsSchema, "params"),
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin"] }),
+  revokePractitionerAccess
 );
 
 router.get(

@@ -6,8 +6,8 @@ import { Request, Response, NextFunction } from "express";
 import { AsyncHandler } from "@/utils/async-handler";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
-import { eq } from "drizzle-orm";
-import { organization_access } from "@/drizzle";
+import { eq, and } from "drizzle-orm";
+import { practitioners } from "@/drizzle";
 
 export const handlePatientProfile = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
@@ -133,7 +133,7 @@ export const assignOrganizationAccess = AsyncHandler(
     });
 
     if (!patientAccount) {
-      return next(ApiError.forbidden("Patient account does not exist"));
+      return next(ApiError.badRequest("Patient account does not exist"));
     }
 
     const newAccess = await PatientService.addOrganizationAccess(
@@ -155,9 +155,79 @@ export const revokeOrganizationAccess = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const { patientId, accessId } = req.params;
 
+    if (!patientId || !accessId) {
+      return next(ApiError.badRequest("Please input an appropriate id"));
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.badRequest("Patient account does not exist"));
+    }
+
+    const revokedAccess = await PatientService.removeOrganizationAccess(
+      patientId?.toString(),
+      accessId?.toString()
+    );
+
+    if (!revokedAccess) {
+      return next(
+        ApiError.server("Failed to revoke access. Please try again later!")
+      );
+    }
+
+    return ApiResponse.ok(res, "Access revoked successfully", revokedAccess);
+  }
+);
+
+export const getPractiitonerAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+
     if (!patientId) {
       return next(
         ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    const allowedPractitioners = await PatientService.getPractitionerAccessList(
+      patientId?.toString()
+    );
+
+    if (!allowedPractitioners) {
+      return next(
+        ApiError.server(
+          "Failed to get practitioner access list. Please try again later!"
+        )
+      );
+    }
+
+    return ApiResponse.ok(
+      res,
+      "Practitioners fetched successfully",
+      allowedPractitioners
+    );
+  }
+);
+
+export const assignPractitionerAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId } = req.params;
+    const { practitioner_id } = req.body;
+
+    if (!patientId) {
+      return next(
+        ApiError.badRequest("Please input an appropriate patient id")
+      );
+    }
+
+    if (!practitioner_id) {
+      return next(
+        ApiError.badRequest(
+          "Please input an appropriate practitioner id in request body"
+        )
       );
     }
 
@@ -166,11 +236,51 @@ export const revokeOrganizationAccess = AsyncHandler(
     });
 
     if (!patientAccount) {
-      return next(ApiError.forbidden("Patient account does not exist"));
+      return next(ApiError.badRequest("Patient account does not exist"));
     }
 
-    const revokedAccess = await PatientService.removeOrganizationAccess(
-      patientId?.toString(),
+    if (!req.admin) {
+      return next(ApiError.forbidden("Staff admin access required"));
+    }
+
+    const newAccess = await PatientService.addPractitionerAccess(
+      req.admin.id,
+      patientId.toString(),
+      practitioner_id
+    );
+
+    if (!newAccess) {
+      return next(
+        ApiError.server("Failed to create new access. Please try again later!")
+      );
+    }
+
+    return ApiResponse.created(res, "Access granted successfully", newAccess);
+  }
+);
+
+export const revokePractitionerAccess = AsyncHandler(
+  async (req: UserRequest, res: Response, next: NextFunction) => {
+    const { patientId, accessId } = req.params;
+
+    if (!patientId || !accessId) {
+      return next(ApiError.badRequest("Please input an appropriate id"));
+    }
+
+    const patientAccount = await db.query.patients.findFirst({
+      where: eq(patients.id, patientId as string)
+    });
+
+    if (!patientAccount) {
+      return next(ApiError.badRequest("Patient account does not exist"));
+    }
+
+    if (!req.admin) {
+      return next(ApiError.forbidden("Staff admin access required"));
+    }
+
+    const revokedAccess = await PatientService.removePractitionerAccess(
+      patientId.toString(),
       accessId?.toString()
     );
 
