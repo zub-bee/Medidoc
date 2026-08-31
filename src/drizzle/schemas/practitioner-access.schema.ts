@@ -14,6 +14,9 @@ export const practitioner_access = pgTable(
     patientId: uuid("patient_id")
       .references(() => patients.id)
       .notNull(),
+    organizationId: uuid("organization_id")
+      .references(() => providers.id)
+      .notNull(),
     grantedBy: uuid("granted_by")
       .references(() => admins.id)
       .notNull(),
@@ -23,7 +26,8 @@ export const practitioner_access = pgTable(
   },
   table => [
     index("practitioner_access_patient_id_idx").on(table.patientId),
-    index("practitioner_access_practitioner_id_idx").on(table.practitionerId)
+    index("practitioner_access_practitioner_id_idx").on(table.practitionerId),
+    index("practitioner_access_organization_id_idx").on(table.organizationId)
   ]
 );
 

@@ -1,7 +1,11 @@
 import { pgTable, text, timestamp, varchar, uuid } from "drizzle-orm/pg-core";
+import { users } from "./user.schema";
 
 export const providers = pgTable("providers", {
   id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .unique(),
   name: text("name").notNull(),
   cacNumber: varchar("cac_number").notNull().unique(),
   status: text("status", {
