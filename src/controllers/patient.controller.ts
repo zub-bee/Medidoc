@@ -56,7 +56,7 @@ export const updatePatientProfile = AsyncHandler(
     }
 
     const updateData: Record<string, unknown> = {};
-    if (name) updateData.name = name;
+    if (name) updateData.fullName = name;
     if (address) updateData.address = address;
     if (phone) updateData.phone = phone;
 
@@ -72,14 +72,14 @@ export const updatePatientProfile = AsyncHandler(
     );
 
     return ApiResponse.Success(res, "Profile updated successfully!", {
-      user: {
+      profile: {
         id: updatedUser?.id,
         name: updatedUser?.fullName,
         email: updatedUser?.email,
         phone: updatedUser?.phone,
         address: updatedUser?.address,
         nin: updatedUser?.nin,
-        gender: updatedUser?.nin,
+        gender: updatedUser?.gender,
         updatedAt: updatedUser?.updatedAt
       }
     });

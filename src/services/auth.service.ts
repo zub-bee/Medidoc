@@ -453,10 +453,11 @@ export class AuthService {
         );
       }
 
-      const isPasswordValid = await verifyPassword(
-        password,
-        user.password || ""
-      );
+      if (!user.password) {
+        throw ApiError.unauthorized("Invalid credentials");
+      }
+
+      const isPasswordValid = await verifyPassword(password, user.password);
       if (!isPasswordValid) {
         let lockUntil = null;
 
@@ -532,6 +533,7 @@ export class AuthService {
       if (err instanceof ApiError) {
         throw err;
       }
+      logger.error(err, "signinUser unexpected error");
       throw ApiError.server("Signin failed");
     }
   }
