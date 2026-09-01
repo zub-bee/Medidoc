@@ -437,7 +437,7 @@ export const createSummary = AsyncHandler(
       );
     }
 
-    return ApiResponse.created(res, "Episode created successfully", newSummary);
+    return ApiResponse.created(res, "Summary created successfully", newSummary);
   }
 );
 

@@ -13,14 +13,14 @@ import {
   getOrganizationAccess,
   assignOrganizationAccess,
   revokeOrganizationAccess,
-  getPractiitonerAccess,
   revokePractitionerAccess,
   assignPractitionerAccess,
   getEpisodes,
   createEpisode,
   createSummary,
   getClinicalEntries,
-  createClinicalEntry
+  createClinicalEntry,
+  getPractiitonerAccess
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -71,10 +71,10 @@ router.get(
 
 router.patch(
   "/:patientId",
-  validateRequest(UpdatePatientProfileSchema),
   verifyAuthentication,
   requirePatientUser,
   checkUserAccountRestriction,
+  validateRequest(UpdatePatientProfileSchema),
   updatePatientProfile
 );
 
@@ -87,17 +87,17 @@ router.get(
 
 router.post(
   "/:patientId/organization-access",
-  validateRequest(OrganizationAccessSchema),
   verifyAuthentication,
   requirePatientUser,
+  validateRequest(OrganizationAccessSchema),
   assignOrganizationAccess
 );
 
 router.post(
   "/:patientId/organization-access/:accessId/revoke",
-  validateRequest(AccessIdParamsSchema, "params"),
   verifyAuthentication,
   requirePatientUser,
+  validateRequest(AccessIdParamsSchema, "params"),
   revokeOrganizationAccess
 );
 
@@ -110,17 +110,17 @@ router.get(
 
 router.post(
   "/:patientId/practitioner-access",
-  validateRequest(PractitionerAccessSchema),
   verifyAuthentication,
   requirePatientAccess({ roles: ["admin"] }),
+  validateRequest(PractitionerAccessSchema),
   assignPractitionerAccess
 );
 
 router.post(
   "/:patientId/practitioner-access/:accessId/revoke",
-  validateRequest(AccessIdParamsSchema, "params"),
   verifyAuthentication,
   requirePatientAccess({ roles: ["admin"] }),
+  validateRequest(AccessIdParamsSchema, "params"),
   revokePractitionerAccess
 );
 
@@ -133,9 +133,9 @@ router.get(
 
 router.post(
   "/:patientId/episodes",
-  validateRequest(NewEpisodeLabelSchema),
   verifyAuthentication,
   requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewEpisodeLabelSchema),
   createEpisode
 );
 
@@ -148,9 +148,9 @@ router.get(
 
 router.post(
   "/:patientId/summaries",
-  validateRequest(NewSummarySchema),
   verifyAuthentication,
   requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewSummarySchema),
   createSummary
 );
 
@@ -163,9 +163,9 @@ router.get(
 
 router.post(
   "/:patientId/clinical-entries",
-  validateRequest(NewClinicalEntrySchema),
   verifyAuthentication,
   requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewClinicalEntrySchema),
   createClinicalEntry
 );
 
