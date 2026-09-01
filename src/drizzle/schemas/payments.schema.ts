@@ -19,9 +19,9 @@ export const payments = pgTable(
     method: text("method", { enum: ["cash", "card", "transfer", "insurance"] })
       .notNull()
       .default("transfer"),
-    recordedBy: uuid("recorded_by")
-      .references(() => admins.id)
-      .notNull(),
+    // Null when the patient recorded the payment themselves (self-pay) rather
+    // than staff recording it on their behalf.
+    recordedBy: uuid("recorded_by").references(() => admins.id),
     paidAt: timestamp("paid_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

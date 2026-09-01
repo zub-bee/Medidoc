@@ -5,6 +5,7 @@ import { patients } from "../drizzle/schemas/patients.schema";
 import { providers } from "../drizzle/schemas/providers.schema";
 import { admins } from "../drizzle/schemas/admins.schema";
 import { practitioners } from "../drizzle/schemas/practitioners.schema";
+import { platforms } from "../drizzle/schemas/platform-admins.schema";
 import { eq, and } from "drizzle-orm";
 import { ApiError } from "../utils/api-error";
 import { hashPassword, verifyPassword } from "../helpers/auth.helpers";
@@ -626,49 +627,64 @@ export class AuthService {
     return user;
   }
 
-  static async getRoleId(userRole: UserRole, userId: string) {
+  /**
+   * Resolves the role-specific profile id (e.g. the patient/admin/practitioner's
+   * own row id, not their user id) and, for staff roles, the organization they
+   * belong to.
+   */
+  static async getRoleContext(
+    userRole: UserRole,
+    userId: string
+  ): Promise<{ roleId?: string; organizationId?: string }> {
     if (userRole === "patient") {
-      const patientId = await db.query.patients.findFirst({
+      const patient = await db.query.patients.findFirst({
         columns: { id: true },
         where: eq(patients.userId, userId)
       });
 
-      return patientId?.id;
+      return { roleId: patient?.id };
     }
 
     if (userRole === "provider") {
-      const adminProviderId = await db.query.admins.findFirst({
-        columns: { organizationId: true },
-        where: eq(admins.userId, userId)
-      });
-
-      if (!adminProviderId) return undefined;
-
-      const providerId = await db.query.providers.findFirst({
+      const provider = await db.query.providers.findFirst({
         columns: { id: true },
-        where: eq(providers.id, adminProviderId?.organizationId)
+        where: eq(providers.userId, userId)
       });
 
-      return providerId?.id;
+      return { roleId: provider?.id, organizationId: provider?.id };
     }
 
     if (userRole === "admin") {
-      const adminId = await db.query.admins.findFirst({
-        columns: { userId: true },
+      const admin = await db.query.admins.findFirst({
+        columns: { id: true, organizationId: true },
         where: eq(admins.userId, userId)
       });
 
-      return adminId?.userId;
+      return { roleId: admin?.id, organizationId: admin?.organizationId };
     }
 
     if (userRole === "practitioner") {
-      const practitionerId = await db.query.practitioners.findFirst({
-        columns: { userId: true },
+      const practitioner = await db.query.practitioners.findFirst({
+        columns: { id: true, organizationId: true },
         where: eq(practitioners.userId, userId)
       });
 
-      return practitionerId?.userId;
+      return {
+        roleId: practitioner?.id,
+        organizationId: practitioner?.organizationId
+      };
     }
+
+    if (userRole === "platform") {
+      const platform = await db.query.platforms.findFirst({
+        columns: { id: true },
+        where: eq(platforms.userId, userId)
+      });
+
+      return { roleId: platform?.id };
+    }
+
+    return {};
   }
 
   static async refreshTokens(accessToken: string | null, refreshToken: string) {

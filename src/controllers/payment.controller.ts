@@ -20,14 +20,14 @@ export const createPayment = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
     const { patientId, invoiceId } = req.params;
 
-    if (!req.admin) {
-      return next(ApiError.forbidden("Admin access required"));
+    if (!req.admin && !req.patient_id) {
+      return next(ApiError.forbidden("Access required"));
     }
 
     const payment = await PaymentService.create(
       patientId as string,
       invoiceId as string,
-      req.admin.id,
+      req.admin?.id ?? null,
       req.body
     );
     return ApiResponse.created(res, "Payment recorded successfully", payment);

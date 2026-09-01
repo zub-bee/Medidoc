@@ -25,7 +25,8 @@ import {
 import {
   listAppointments,
   createAppointment,
-  checkInAppointment
+  checkInAppointment,
+  cancelAppointment
 } from "../controllers/appointment.controller";
 import {
   listInvoices,
@@ -179,7 +180,9 @@ router.get(
 router.post(
   "/:patientId/appointments",
   verifyAuthentication,
-  requirePatientAccess({ roles: ["admin", "provider", "practitioner"] }),
+  requirePatientAccess({
+    roles: ["admin", "provider", "practitioner", "patient"]
+  }),
   validateRequest(CreateAppointmentSchema),
   createAppointment
 );
@@ -190,6 +193,14 @@ router.patch(
   requirePatientAccess({ roles: ["admin", "provider"] }),
   validateObjectId("appointmentId"),
   checkInAppointment
+);
+
+router.patch(
+  "/:patientId/appointments/:appointmentId/cancel",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "provider", "patient"] }),
+  validateObjectId("appointmentId"),
+  cancelAppointment
 );
 
 router.get(
@@ -226,7 +237,7 @@ router.get(
 router.post(
   "/:patientId/invoices/:invoiceId/payments",
   verifyAuthentication,
-  requirePatientAccess({ roles: ["admin", "provider"] }),
+  requirePatientAccess({ roles: ["admin", "provider", "patient"] }),
   validateObjectId("invoiceId"),
   validateRequest(CreatePaymentSchema),
   createPayment

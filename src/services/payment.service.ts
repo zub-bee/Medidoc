@@ -36,10 +36,13 @@ export class PaymentService {
   static async create(
     patientId: string,
     invoiceId: string,
-    recordedBy: string,
+    recordedBy: string | null,
     { amount, method, paidAt }: CreatePaymentType
   ) {
-    await PaymentService.assertInvoiceBelongsToPatient(patientId, invoiceId);
+    const invoice = await PaymentService.assertInvoiceBelongsToPatient(
+      patientId,
+      invoiceId
+    );
 
     const [payment] = await db
       .insert(payments)
@@ -47,10 +50,20 @@ export class PaymentService {
         invoiceId,
         amount: amount.toFixed(2),
         method,
-        recordedBy,
+        recordedBy: recordedBy ?? undefined,
         paidAt: paidAt ? new Date(paidAt) : new Date()
       })
       .returning();
+
+    // A patient paying for themselves (no staff recordedBy) settles the
+    // invoice immediately; staff-recorded payments may be partial, so those
+    // still go through the explicit mark-paid action.
+    if (!recordedBy && Number(amount) >= Number(invoice.amount)) {
+      await db
+        .update(invoices)
+        .set({ status: "paid" })
+        .where(eq(invoices.id, invoiceId));
+    }
 
     return payment;
   }

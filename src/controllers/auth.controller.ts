@@ -160,7 +160,7 @@ export const getUserProfile = AsyncHandler(
       return next(ApiError.server("Failed to get user sessions!"));
     }
 
-    const roleProfileId = await AuthService.getRoleId(
+    const { roleId, organizationId } = await AuthService.getRoleContext(
       user.role,
       userId.toString()
     );
@@ -170,7 +170,8 @@ export const getUserProfile = AsyncHandler(
     return ApiResponse.ok(res, "User profile fetched successfully", {
       user: {
         id: user.id,
-        [`${role}Id`]: roleProfileId,
+        [`${role}Id`]: roleId,
+        organizationId,
         name: user.name,
         email: user.email,
         avatar: user.avatar,
@@ -328,7 +329,7 @@ export const verifyResetPasswordOtp = AsyncHandler(
 //? RESET PASSWORD
 export const resetPassword = AsyncHandler(
   async (req: UserRequest, res: Response, next: NextFunction) => {
-    const { newPassword, email } = req.body;
+    const { new_password: newPassword, email } = req.body;
     if (!email || !newPassword) {
       return next(ApiError.badRequest("Newpassword and email are required!"));
     }
@@ -357,7 +358,7 @@ export const changePassword = AsyncHandler(
       return next(ApiError.unauthorized("Unauthorized access"));
     }
 
-    const { oldPassword, newPassword } = req.body;
+    const { old_password: oldPassword, new_password: newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
       return next(

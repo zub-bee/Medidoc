@@ -85,6 +85,20 @@
       "when": 1788205424472,
       "tag": "0011_add_practitioner_access_organization_id",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788271340428,
+      "tag": "0012_optimal_marten_broadcloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788272654431,
+      "tag": "0013_cynical_christian_walker",
+      "breakpoints": true
     }
   ]
 }
