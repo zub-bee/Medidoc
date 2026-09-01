@@ -14,7 +14,7 @@ export const OrganizationAccessSchema = z.object({
 });
 
 export const PractitionerAccessSchema = z.object({
-  practitioner_id: z.uuid({ error: "Organization id must be in uuid format" })
+  practitioner_id: z.uuid({ error: "Practioner id id must be in uuid format" })
 });
 
 export const AccessIdParamsSchema = z.object({
@@ -46,7 +46,9 @@ export const NewSummarySchema = z.object({
     }
   ),
   data: z.object(),
-  episode_id: z.uuid({ error: "label must be a valid uuid format" }).optional()
+  episode_id: z
+    .uuid({ error: "Episode id must be a valid uuid format" })
+    .optional()
 });
 
 export const NewClinicalEntrySchema = z.object({
