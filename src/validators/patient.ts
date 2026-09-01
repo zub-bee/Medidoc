@@ -45,7 +45,7 @@ export const NewSummarySchema = z.object({
         "Valid categories are problem_list, medications, allergies, vaccinations preferences, lifestyle, family_history, social_situation, care_plan"
     }
   ),
-  data: z.object(),
+  data: z.record(z.string(), z.unknown()),
   episode_id: z
     .uuid({ error: "Episode id must be a valid uuid format" })
     .optional()
@@ -68,7 +68,7 @@ export const NewClinicalEntrySchema = z.object({
         "Valid event types are observation, order, procedure, lab_result radiology, vital_signs, progress_note, note"
     }
   ),
-  data: z.object(),
+  data: z.record(z.string(), z.unknown()),
   occurred_at: z.coerce.date({
     error: "time of occurrence must be a valid date"
   }),

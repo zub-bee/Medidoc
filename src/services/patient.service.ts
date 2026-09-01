@@ -1,4 +1,4 @@
-import { eq, sql, and, isNull } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { patients } from "../drizzle/schemas/patients.schema";
 import db from "../configs/db";
 import {
@@ -25,11 +25,8 @@ export class PatientService {
   }
 
   static async getPatientSummaries(patientId: string, category?: string) {
-    const data = await db
-      .select({
-        category: patient_summaries.category,
-        summaries: sql<PatientSummary[]>`json_agg(${patient_summaries})`
-      })
+    const rows = await db
+      .select()
       .from(patient_summaries)
       .where(
         category
@@ -41,15 +38,12 @@ export class PatientService {
               )
             )
           : eq(patient_summaries.patientId, patientId)
-      )
-      .groupBy(patient_summaries.category);
+      );
 
-    const patientSummaries = Object.fromEntries(
-      data.map(({ category, summaries }) => [
-        category,
-        summaries.map(({ category: _, patientId: __, ...rest }) => rest)
-      ])
-    );
+    const patientSummaries: Record<string, PatientSummary[]> = {};
+    for (const row of rows) {
+      (patientSummaries[row.category] ??= []).push(row);
+    }
 
     return patientSummaries;
   }
@@ -193,30 +187,26 @@ export class PatientService {
   }
 
   static async getPatientEpisodes(patientId: string, statusQuery?: string) {
-    if (statusQuery === "open" || statusQuery === "closed") {
-      return await db
-        .select({
-          status: episodes.status,
-          episodes: sql<Episode[]>`json_agg(${episodes})`
-        })
-        .from(episodes)
-        .where(
-          and(
-            eq(episodes.patientId, patientId),
-            eq(episodes.status, statusQuery)
-          )
-        )
-        .groupBy(episodes.status);
+    const rows = await db
+      .select()
+      .from(episodes)
+      .where(
+        statusQuery === "open" || statusQuery === "closed"
+          ? and(
+              eq(episodes.patientId, patientId),
+              eq(episodes.status, statusQuery)
+            )
+          : eq(episodes.patientId, patientId)
+      );
+
+    const grouped = new Map<string, Episode[]>();
+    for (const row of rows) {
+      const list = grouped.get(row.status) ?? [];
+      list.push(row);
+      grouped.set(row.status, list);
     }
 
-    return await db
-      .select({
-        status: episodes.status,
-        episodes: sql<Episode[]>`json_agg(${episodes})`
-      })
-      .from(episodes)
-      .where(eq(episodes.patientId, patientId))
-      .groupBy(episodes.status);
+    return Array.from(grouped, ([status, episodes]) => ({ status, episodes }));
   }
 
   static async createNewEpisode(
@@ -224,7 +214,7 @@ export class PatientService {
     label: string,
     organizationId: string
   ) {
-    const newEpisode = await db
+    const [newEpisode] = await db
       .insert(episodes)
       .values({
         patientId: patientId,
@@ -244,7 +234,7 @@ export class PatientService {
     data: Record<string, unknown>,
     episodeId?: string
   ) {
-    const newSummary = await db
+    const [newSummary] = await db
       .insert(patient_summaries)
       .values({
         patientId: patientId,
@@ -263,11 +253,8 @@ export class PatientService {
     eventType?: string,
     episodeId?: string
   ) {
-    const data = await db
-      .select({
-        eventType: clinical_entries.eventType,
-        data: sql<ClinicalEntry[]>`json_agg(${clinical_entries})`
-      })
+    const rows = await db
+      .select()
       .from(clinical_entries)
       .where(
         and(
@@ -280,17 +267,14 @@ export class PatientService {
             : undefined,
           episodeId ? eq(clinical_entries.episodeId, episodeId) : undefined
         )
-      )
-      .groupBy(clinical_entries.eventType);
+      );
 
-    const patientSummaries = Object.fromEntries(
-      data.map(({ eventType, data }) => [
-        eventType,
-        data.map(({ eventType: _, patientId: __, ...rest }) => rest)
-      ])
-    );
+    const grouped: Record<string, ClinicalEntry[]> = {};
+    for (const row of rows) {
+      (grouped[row.eventType] ??= []).push(row);
+    }
 
-    return patientSummaries;
+    return grouped;
   }
 
   static async createClinicalEntry(
@@ -302,7 +286,7 @@ export class PatientService {
     practitionerId: string,
     episodeId?: string
   ) {
-    const newClinicalEntry = await db
+    const [newClinicalEntry] = await db
       .insert(clinical_entries)
       .values({
         organizationId: organizationId,
