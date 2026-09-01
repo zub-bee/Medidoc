@@ -110,6 +110,7 @@ export class PatientService {
 
   static async addPractitionerAccess(
     adminId: string,
+    organizationId: string,
     patientId: string,
     practitionerId: string
   ) {
@@ -129,6 +130,7 @@ export class PatientService {
       .values({
         patientId: patientId,
         practitionerId: practitionerId,
+        organizationId: organizationId,
         grantedBy: adminId,
         status: "active",
         grantedAt: new Date()

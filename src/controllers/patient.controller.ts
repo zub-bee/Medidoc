@@ -245,6 +245,7 @@ export const assignPractitionerAccess = AsyncHandler(
 
     const newAccess = await PatientService.addPractitionerAccess(
       req.admin.id,
+      req.admin.organizationId,
       patientId.toString(),
       practitioner_id
     );
