@@ -28,8 +28,8 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
         return next(ApiError.forbidden("Authentication required"));
       }
 
-      const patientId = req.params[paramName];
-      if (!patientId || typeof patientId !== "string") {
+      const patientId = req.params[paramName] as string;
+      if (!patientId) {
         return next(ApiError.badRequest(`Missing ${paramName} in request`));
       }
 
@@ -56,11 +56,13 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
           .where(eq(patients.userId, req.user._id))
           .limit(1);
 
-        if (!patientAccount || patientAccount.id !== patientId) {
+        if (!patientAccount) {
+          return next(ApiError.forbidden("Patient account does not exist"));
+        }
+
+        if (patientAccount.id !== patientId) {
           return next(
-            ApiError.forbidden(
-              "You do not have access to this patient's record"
-            )
+            ApiError.forbidden("You do not have access to this data")
           );
         }
 
@@ -194,7 +196,6 @@ export function requirePatientAccess(options: PatientAccessOptions = {}) {
             )
           );
         }
-
         return next();
       }
 

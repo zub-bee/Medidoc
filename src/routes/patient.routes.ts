@@ -5,9 +5,22 @@ import { verifyAuthentication } from "../middlewares/verify-auth";
 import { requirePatientUser } from "../middlewares/require-patient";
 import { requirePatientAccess } from "../middlewares/require-patient-access";
 import upload from "../middlewares/upload-file";
+import { checkUserAccountRestriction } from "../middlewares/user-account-restriction";
 import {
   handlePatientProfile,
-  getPatientSummaries
+  getPatientSummaries,
+  updatePatientProfile,
+  getOrganizationAccess,
+  assignOrganizationAccess,
+  revokeOrganizationAccess,
+  revokePractitionerAccess,
+  assignPractitionerAccess,
+  getEpisodes,
+  createEpisode,
+  createSummary,
+  getClinicalEntries,
+  createClinicalEntry,
+  getPractiitonerAccess
 } from "../controllers/patient.controller";
 import {
   listAppointments,
@@ -29,6 +42,16 @@ import { CreateAppointmentSchema } from "../validators/appointment";
 import { CreateInvoiceSchema } from "../validators/invoice";
 import { CreatePaymentSchema } from "../validators/payment";
 import { CreateConsentFormSchema } from "../validators/consent-form";
+import {
+  UpdatePatientProfileSchema,
+  OrganizationAccessSchema,
+  PractitionerAccessSchema,
+  AccessIdParamsSchema,
+  NewEpisodeLabelSchema,
+  NewSummarySchema,
+  NewClinicalEntrySchema
+} from "@/validators/patient";
+import { UpdateProfileSchema } from "@/validators/auth";
 
 const router = Router();
 
@@ -41,127 +64,115 @@ router.get(
 
 router.get(
   "/:patientId",
-  verifyAuthentication
-  // require patient access
-  // handler for Patient Profile
+  verifyAuthentication,
+  requirePatientAccess(),
+  handlePatientProfile
 );
 
 router.patch(
   "/:patientId",
-  verifyAuthentication
-  // require patient access
-  // handler for Patient Profile
-);
-
-router.get(
-  "/:patient/organization-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
-);
-
-router.post(
-  // some of these paths should only support the
-  // signed in patient user
-  // simply because only one user would be doing this
-  "/:patient/organization-access/:accessId/revoke",
-  // validate request body
   verifyAuthentication,
-  requirePatientUser
-  // handler for access rovoke
+  requirePatientUser,
+  checkUserAccountRestriction,
+  validateRequest(UpdatePatientProfileSchema),
+  updatePatientProfile
 );
 
-router.post(
-  "/:patient/organization-access",
-  // validate req body
+router.get(
+  "/:patientId/organization-access",
   verifyAuthentication,
-  requirePatientUser
-  // handler for access list
-);
-
-router.get(
-  "/:patient/practitioner-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
+  requirePatientAccess(),
+  getOrganizationAccess
 );
 
 router.post(
-  // some of these paths should only support the
-  // signed in patient user
-  // simply because only one user would be doing this
-  "/:patient/practitioner-access/:accessId/revoke",
-  // validate request body
+  "/:patientId/organization-access",
   verifyAuthentication,
-  requirePatientUser
-  // handler for access rovoke
+  requirePatientUser,
+  validateRequest(OrganizationAccessSchema),
+  assignOrganizationAccess
 );
 
 router.post(
-  "/:patient/practitioner-access",
-  // validate req body
-  verifyAuthentication
-  // req patient access
-  // handler for access list
+  "/:patientId/organization-access/:accessId/revoke",
+  verifyAuthentication,
+  requirePatientUser,
+  validateRequest(AccessIdParamsSchema, "params"),
+  revokeOrganizationAccess
 );
 
 router.get(
-  "/:patient/practitioner-access",
-  verifyAuthentication
-  // require access to this patient
-  // handler for access list
-);
-
-router.get(
-  "/:patient/episodes",
-  verifyAuthentication
-  // requirepatientaccess
-  // handler for episodes
+  "/:patientId/practitioner-access",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
+  getPractiitonerAccess
 );
 
 router.post(
-  "/:patient/episodes",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for episodes
+  "/:patientId/practitioner-access",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin"] }),
+  validateRequest(PractitionerAccessSchema),
+  assignPractitionerAccess
+);
+
+router.post(
+  "/:patientId/practitioner-access/:accessId/revoke",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin"] }),
+  validateRequest(AccessIdParamsSchema, "params"),
+  revokePractitionerAccess
+);
+
+router.get(
+  "/:patientId/episodes",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["admin", "practitioner", "patient"] }),
+  getEpisodes
+);
+
+router.post(
+  "/:patientId/episodes",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewEpisodeLabelSchema),
+  createEpisode
 );
 
 router.get(
   "/:patientId/summaries",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] }),
   getPatientSummaries
 );
 
 router.post(
-  "/:patient/summaries",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for episodes
+  "/:patientId/summaries",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewSummarySchema),
+  createSummary
 );
 
 router.get(
   "/:patientId/clinical-entries",
-  verifyAuthentication
-  // verify patient access (requirepatientaccess)
-  // verify practitioner/admin has access
-  // handler for clinical entries
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner", "admin", "patient"] }),
+  getClinicalEntries
 );
 
 router.post(
-  "/:patient/clinical-entries",
-  // validate request body
-  verifyAuthentication
-  // require patient access
-  // handler for clinical entries
+  "/:patientId/clinical-entries",
+  verifyAuthentication,
+  requirePatientAccess({ roles: ["practitioner"] }),
+  validateRequest(NewClinicalEntrySchema),
+  createClinicalEntry
 );
 
 router.get(
   "/:patientId/appointments",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
   listAppointments
 );
 
@@ -184,7 +195,7 @@ router.patch(
 router.get(
   "/:patientId/invoices",
   verifyAuthentication,
-  requirePatientAccess(),
+  requirePatientAccess({ roles: ["admin", "patient", "provider"] }),
   listInvoices
 );
 

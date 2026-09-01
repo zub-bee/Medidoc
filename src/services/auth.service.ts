@@ -359,7 +359,13 @@ export class AuthService {
             { error, userEmail, name },
             "Failed to create patient profile"
           );
-          throw ApiError.server("Failed to create patient profile");
+
+          await redisClient.del(`user:${email}:${hashCode}`);
+          await redisClient.del(`user:pending:${email}`);
+
+          throw ApiError.server(
+            "Failed to create patient profile please try again later"
+          );
         }
       }
 
@@ -387,7 +393,11 @@ export class AuthService {
             { error, userEmail, name },
             "Failed to create organization profile"
           );
-          throw ApiError.server("Failed to create organization profile");
+          await redisClient.del(`user:${email}:${hashCode}`);
+          await redisClient.del(`user:pending:${email}`);
+          throw ApiError.server(
+            "Failed to create organization profile, please try again later"
+          );
         }
       }
 
@@ -444,10 +454,11 @@ export class AuthService {
         );
       }
 
-      const isPasswordValid = await verifyPassword(
-        password,
-        user.password || ""
-      );
+      if (!user.password) {
+        throw ApiError.unauthorized("Invalid credentials");
+      }
+
+      const isPasswordValid = await verifyPassword(password, user.password);
       if (!isPasswordValid) {
         let lockUntil = null;
 
@@ -523,6 +534,7 @@ export class AuthService {
       if (err instanceof ApiError) {
         throw err;
       }
+      logger.error(err, "signinUser unexpected error");
       throw ApiError.server("Signin failed");
     }
   }
@@ -612,6 +624,51 @@ export class AuthService {
       where: eq(users.id, userId)
     });
     return user;
+  }
+
+  static async getRoleId(userRole: UserRole, userId: string) {
+    if (userRole === "patient") {
+      const patientId = await db.query.patients.findFirst({
+        columns: { id: true },
+        where: eq(patients.userId, userId)
+      });
+
+      return patientId?.id;
+    }
+
+    if (userRole === "provider") {
+      const adminProviderId = await db.query.admins.findFirst({
+        columns: { organizationId: true },
+        where: eq(admins.userId, userId)
+      });
+
+      if (!adminProviderId) return undefined;
+
+      const providerId = await db.query.providers.findFirst({
+        columns: { id: true },
+        where: eq(providers.id, adminProviderId?.organizationId)
+      });
+
+      return providerId?.id;
+    }
+
+    if (userRole === "admin") {
+      const adminId = await db.query.admins.findFirst({
+        columns: { userId: true },
+        where: eq(admins.userId, userId)
+      });
+
+      return adminId?.userId;
+    }
+
+    if (userRole === "practitioner") {
+      const practitionerId = await db.query.practitioners.findFirst({
+        columns: { userId: true },
+        where: eq(practitioners.userId, userId)
+      });
+
+      return practitionerId?.userId;
+    }
   }
 
   static async refreshTokens(accessToken: string | null, refreshToken: string) {
