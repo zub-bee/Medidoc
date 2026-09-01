@@ -1,8 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import * as dotenv from "dotenv";
+import { hashPassword } from "../helpers/auth.helpers";
 
 dotenv.config();
+
+/** Shared demo password for every seeded user — see README for login instructions. */
+const SEED_PASSWORD = "TestPass123!";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -43,6 +47,8 @@ export default async function main() {
 
   await resetSeed();
 
+  const passwordHash = await hashPassword(SEED_PASSWORD);
+
   const orgId = id();
   await insert("providers", {
     id: orgId,
@@ -54,8 +60,21 @@ export default async function main() {
     updated_at: daysAgo(200)
   });
 
+  const platformUserId = id();
+  await insert("users", {
+    id: platformUserId,
+    name: "Chidi Okafor",
+    email: "chidi@medidoc.platform",
+    password: passwordHash,
+    role: "platform",
+    is_email_verified: true,
+    created_at: now(),
+    updated_at: now()
+  });
+
   await insert("platforms", {
     id: id(),
+    user_id: platformUserId,
     name: "Chidi Okafor",
     email: "chidi@medidoc.platform",
     created_at: now(),
@@ -67,6 +86,7 @@ export default async function main() {
     id: adminUserId,
     name: "Amaka Nwosu",
     email: "amaka@lagosgeneral.ng",
+    password: passwordHash,
     role: "admin",
     is_email_verified: true,
     created_at: daysAgo(180),
@@ -80,7 +100,7 @@ export default async function main() {
     organization_id: orgId,
     name: "Amaka Nwosu",
     email: "amaka@lagosgeneral.ng",
-    status: "active",
+    status: "verified",
     created_at: daysAgo(180),
     updated_at: daysAgo(180)
   });
@@ -90,6 +110,7 @@ export default async function main() {
     id: doctorUserId,
     name: "Dr. Funmi Adeyemi",
     email: "funmi.adeyemi@lagosgeneral.ng",
+    password: passwordHash,
     role: "practitioner",
     is_email_verified: true,
     created_at: daysAgo(150),
@@ -114,6 +135,7 @@ export default async function main() {
     id: nurseUserId,
     name: "Nurse Ijeoma Bello",
     email: "ijeoma.bello@lagosgeneral.ng",
+    password: passwordHash,
     role: "practitioner",
     is_email_verified: true,
     created_at: daysAgo(150),
@@ -138,6 +160,7 @@ export default async function main() {
     id: patientUserId,
     name: "Tunde Bakare",
     email: "tunde.bakare@example.com",
+    password: passwordHash,
     role: "patient",
     is_email_verified: true,
     created_at: daysAgo(120),
@@ -268,7 +291,9 @@ export default async function main() {
     changed_at: daysAgo(60)
   });
 
-  console.log("Seeding completed.");
+  console.log(
+    `Seeding completed. All seeded users share the password: ${SEED_PASSWORD}`
+  );
 
   await pool.end();
 }

@@ -13,6 +13,14 @@ export class InvoiceService {
       .orderBy(desc(invoices.createdAt));
   }
 
+  static async listByOrganization(organizationId: string) {
+    return db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.organizationId, organizationId))
+      .orderBy(desc(invoices.createdAt));
+  }
+
   static async create(
     patientId: string,
     organizationId: string,

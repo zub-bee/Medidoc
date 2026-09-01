@@ -46,3 +46,13 @@ export const markInvoicePaid = AsyncHandler(
     return ApiResponse.ok(res, "Invoice marked as paid successfully", invoice);
   }
 );
+
+export const listOrganizationInvoices = AsyncHandler(
+  async (req: UserRequest, res: Response) => {
+    const { organizationId } = req.params;
+    const invoices = await InvoiceService.listByOrganization(
+      organizationId as string
+    );
+    return ApiResponse.ok(res, "Invoices fetched successfully", invoices);
+  }
+);
