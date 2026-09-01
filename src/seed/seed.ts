@@ -28,7 +28,8 @@ async function resetSeed() {
       "admins",
       "patients",
       "platforms",
-      "providers"
+      "providers",
+      "users"
     RESTART IDENTITY CASCADE;
   `);
 }
@@ -61,9 +62,21 @@ export default async function main() {
     updated_at: now()
   });
 
+  const adminUserId = id();
+  await insert("users", {
+    id: adminUserId,
+    name: "Amaka Nwosu",
+    email: "amaka@lagosgeneral.ng",
+    role: "admin",
+    is_email_verified: true,
+    created_at: daysAgo(180),
+    updated_at: daysAgo(180)
+  });
+
   const adminId = id();
   await insert("admins", {
     id: adminId,
+    user_id: adminUserId,
     organization_id: orgId,
     name: "Amaka Nwosu",
     email: "amaka@lagosgeneral.ng",
@@ -72,9 +85,21 @@ export default async function main() {
     updated_at: daysAgo(180)
   });
 
+  const doctorUserId = id();
+  await insert("users", {
+    id: doctorUserId,
+    name: "Dr. Funmi Adeyemi",
+    email: "funmi.adeyemi@lagosgeneral.ng",
+    role: "practitioner",
+    is_email_verified: true,
+    created_at: daysAgo(150),
+    updated_at: daysAgo(150)
+  });
+
   const doctorId = id();
   await insert("practitioners", {
     id: doctorId,
+    user_id: doctorUserId,
     organization_id: orgId,
     name: "Dr. Funmi Adeyemi",
     email: "funmi.adeyemi@lagosgeneral.ng",
@@ -84,9 +109,21 @@ export default async function main() {
     updated_at: daysAgo(150)
   });
 
+  const nurseUserId = id();
+  await insert("users", {
+    id: nurseUserId,
+    name: "Nurse Ijeoma Bello",
+    email: "ijeoma.bello@lagosgeneral.ng",
+    role: "practitioner",
+    is_email_verified: true,
+    created_at: daysAgo(150),
+    updated_at: daysAgo(150)
+  });
+
   const nurseId = id();
   await insert("practitioners", {
     id: nurseId,
+    user_id: nurseUserId,
     organization_id: orgId,
     name: "Nurse Ijeoma Bello",
     email: "ijeoma.bello@lagosgeneral.ng",
@@ -96,9 +133,21 @@ export default async function main() {
     updated_at: daysAgo(150)
   });
 
+  const patientUserId = id();
+  await insert("users", {
+    id: patientUserId,
+    name: "Tunde Bakare",
+    email: "tunde.bakare@example.com",
+    role: "patient",
+    is_email_verified: true,
+    created_at: daysAgo(120),
+    updated_at: daysAgo(120)
+  });
+
   const patientId = id();
   await insert("patients", {
     id: patientId,
+    user_id: patientUserId,
     name: "Tunde Bakare",
     dob: "1990-04-12",
     gender: "male",
