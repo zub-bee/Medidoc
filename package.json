@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "cross-env NODE_ENV=development npx tsx watch --clearScreen=false src/server.ts",
-    "build": "rm -rf dist && tsc && tsc-alias",
+    "build": "rm -rf dist && tsc && tsc-alias && cp src/docs/swagger.json dist/docs/swagger.json",
     "start": "cross-env NODE_ENV=production node dist/server.js",
     "seed": "tsx src/seed/index.ts",
     "db:generate": "drizzle-kit generate",
