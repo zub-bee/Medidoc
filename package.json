@@ -28,6 +28,7 @@
     ]
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^9.1.0",
     "@paralleldrive/cuid2": "^3.3.0",
     "argon2": "^0.45.1",
     "cloudinary": "^2.10.0",
