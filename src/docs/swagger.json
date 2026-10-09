@@ -36,11 +36,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "success",
-          "message",
-          "statusCode"
-        ]
+        "required": ["success", "message", "statusCode"]
       },
       "HealthData": {
         "type": "object",
@@ -55,11 +51,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "status",
-          "timestamp",
-          "uptime"
-        ]
+        "required": ["status", "timestamp", "uptime"]
       },
       "DetailedHealthData": {
         "allOf": [
@@ -88,11 +80,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "used",
-                  "total",
-                  "unit"
-                ]
+                "required": ["used", "total", "unit"]
               },
               "cpu": {
                 "type": "object",
@@ -104,17 +92,10 @@
                     }
                   }
                 },
-                "required": [
-                  "usage"
-                ]
+                "required": ["usage"]
               }
             },
-            "required": [
-              "environment",
-              "version",
-              "memory",
-              "cpu"
-            ]
+            "required": ["environment", "version", "memory", "cpu"]
           }
         ]
       },
@@ -142,12 +123,7 @@
             "maxLength": 80
           }
         },
-        "required": [
-          "name",
-          "email",
-          "password",
-          "confirmPassword"
-        ]
+        "required": ["name", "email", "password", "confirmPassword"]
       },
       "RegisterPatientRequest": {
         "type": "object",
@@ -187,10 +163,7 @@
           },
           "gender": {
             "type": "string",
-            "enum": [
-              "female",
-              "male"
-            ]
+            "enum": ["female", "male"]
           },
           "address": {
             "type": "string"
@@ -258,24 +231,14 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "platform",
-              "provider",
-              "practitioner",
-              "patient"
-            ]
+            "enum": ["admin", "platform", "provider", "practitioner", "patient"]
           },
           "code": {
             "type": "string",
             "minLength": 6
           }
         },
-        "required": [
-          "email",
-          "role",
-          "code"
-        ]
+        "required": ["email", "role", "code"]
       },
       "LoginRequest": {
         "type": "object",
@@ -291,20 +254,10 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "platform",
-              "provider",
-              "practitioner",
-              "patient"
-            ]
+            "enum": ["admin", "platform", "provider", "practitioner", "patient"]
           }
         },
-        "required": [
-          "email",
-          "password",
-          "role"
-        ]
+        "required": ["email", "password", "role"]
       },
       "UpdateProfileRequest": {
         "type": "object",
@@ -327,9 +280,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "refresh_token"
-        ]
+        "required": ["refresh_token"]
       },
       "ForgotPasswordRequest": {
         "type": "object",
@@ -340,9 +291,7 @@
             "format": "email"
           }
         },
-        "required": [
-          "email"
-        ]
+        "required": ["email"]
       },
       "VerifyResetOtpRequest": {
         "type": "object",
@@ -354,24 +303,14 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "admin",
-              "platform",
-              "provider",
-              "practitioner",
-              "patient"
-            ]
+            "enum": ["admin", "platform", "provider", "practitioner", "patient"]
           },
           "code": {
             "type": "string",
             "minLength": 6
           }
         },
-        "required": [
-          "email",
-          "role",
-          "code"
-        ]
+        "required": ["email", "role", "code"]
       },
       "ResetPasswordRequest": {
         "type": "object",
@@ -387,10 +326,7 @@
             "maxLength": 80
           }
         },
-        "required": [
-          "email",
-          "new_password"
-        ]
+        "required": ["email", "new_password"]
       },
       "ChangePasswordRequest": {
         "type": "object",
@@ -405,10 +341,7 @@
             "maxLength": 80
           }
         },
-        "required": [
-          "old_password",
-          "new_password"
-        ]
+        "required": ["old_password", "new_password"]
       },
       "RequestDeleteAccountRequest": {
         "type": "object",
@@ -418,9 +351,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "password"
-        ]
+        "required": ["password"]
       },
       "DeleteAccountRequest": {
         "type": "object",
@@ -431,16 +362,11 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "soft",
-              "hard"
-            ],
+            "enum": ["soft", "hard"],
             "default": "soft"
           }
         },
-        "required": [
-          "user_id"
-        ]
+        "required": ["user_id"]
       },
       "CreateAdminRequest": {
         "type": "object",
@@ -461,11 +387,7 @@
             "maxLength": 80
           }
         },
-        "required": [
-          "name",
-          "email",
-          "password"
-        ]
+        "required": ["name", "email", "password"]
       },
       "CreatePractitionerRequest": {
         "type": "object",
@@ -486,11 +408,7 @@
             "maxLength": 80
           }
         },
-        "required": [
-          "name",
-          "email",
-          "password"
-        ]
+        "required": ["name", "email", "password"]
       },
       "Error": {
         "type": "object",
@@ -574,10 +492,7 @@
           },
           "gender": {
             "type": "string",
-            "enum": [
-              "female",
-              "male"
-            ]
+            "enum": ["female", "male"]
           },
           "address": {
             "type": "string",
@@ -611,11 +526,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "verified",
-              "suspended"
-            ]
+            "enum": ["pending", "verified", "suspended"]
           },
           "verified_at": {
             "type": "string",
@@ -657,11 +568,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "active",
-              "revoked"
-            ]
+            "enum": ["pending", "active", "revoked"]
           },
           "created_at": {
             "type": "string",
@@ -745,10 +652,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "revoked"
-            ]
+            "enum": ["active", "revoked"]
           },
           "granted_at": {
             "type": "string",
@@ -783,10 +687,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "revoked"
-            ]
+            "enum": ["active", "revoked"]
           },
           "granted_at": {
             "type": "string",
@@ -821,10 +722,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "open",
-              "closed"
-            ]
+            "enum": ["open", "closed"]
           },
           "opened_at": {
             "type": "string",
@@ -963,12 +861,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "scheduled",
-              "checked_in",
-              "completed",
-              "cancelled"
-            ]
+            "enum": ["scheduled", "checked_in", "completed", "cancelled"]
           },
           "checked_in_by": {
             "type": "string",
@@ -1015,11 +908,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "pending",
-              "paid",
-              "overdue"
-            ]
+            "enum": ["pending", "paid", "overdue"]
           },
           "insurance_provider": {
             "type": "string",
@@ -1065,12 +954,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "cash",
-              "card",
-              "transfer",
-              "insurance"
-            ]
+            "enum": ["cash", "card", "transfer", "insurance"]
           },
           "recorded_by": {
             "type": "string",
@@ -1239,9 +1123,7 @@
   "paths": {
     "/api/v1/health": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Basic health check",
         "responses": {
           "200": {
@@ -1260,9 +1142,7 @@
                           "$ref": "#/components/schemas/HealthData"
                         }
                       },
-                      "required": [
-                        "data"
-                      ]
+                      "required": ["data"]
                     }
                   ]
                 }
@@ -1274,9 +1154,7 @@
     },
     "/api/v1/health/detailed": {
       "get": {
-        "tags": [
-          "Health"
-        ],
+        "tags": ["Health"],
         "summary": "Detailed health check",
         "responses": {
           "200": {
@@ -1295,9 +1173,7 @@
                           "$ref": "#/components/schemas/DetailedHealthData"
                         }
                       },
-                      "required": [
-                        "data"
-                      ]
+                      "required": ["data"]
                     }
                   ]
                 }
@@ -1307,41 +1183,9 @@
         }
       }
     },
-    "/api/v1/auth/signup": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Register a user account",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignupRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Signup succeeded",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/auth/register/patient": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register a patient account",
         "requestBody": {
           "required": true,
@@ -1369,9 +1213,7 @@
     },
     "/api/v1/auth/register/organization": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register an organization account",
         "requestBody": {
           "required": true,
@@ -1399,9 +1241,7 @@
     },
     "/api/v1/auth/verify": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Verify a user account with OTP",
         "requestBody": {
           "required": true,
@@ -1429,9 +1269,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Sign in a user",
         "requestBody": {
           "required": true,
@@ -1459,9 +1297,7 @@
     },
     "/api/v1/auth/profile": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Fetch the currently signed-in user profile",
         "security": [
           {
@@ -1485,9 +1321,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Update the signed-in user profile",
         "security": [
           {
@@ -1523,9 +1357,7 @@
     },
     "/api/v1/auth/refresh": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Refresh access and refresh tokens",
         "security": [
           {
@@ -1558,9 +1390,7 @@
     },
     "/api/v1/auth/forgot-password": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Request password reset OTP",
         "requestBody": {
           "required": true,
@@ -1588,9 +1418,7 @@
     },
     "/api/v1/auth/verify-reset-otp": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Verify reset OTP",
         "requestBody": {
           "required": true,
@@ -1618,9 +1446,7 @@
     },
     "/api/v1/auth/reset-password": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Reset password",
         "requestBody": {
           "required": true,
@@ -1648,9 +1474,7 @@
     },
     "/api/v1/auth/change-password": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Change password",
         "security": [
           {
@@ -1686,9 +1510,7 @@
     },
     "/api/v1/auth/account/request-delete": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Request account deletion",
         "security": [
           {
@@ -1724,9 +1546,7 @@
     },
     "/api/v1/auth/account/delete": {
       "delete": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Delete account",
         "security": [
           {
@@ -1762,9 +1582,7 @@
     },
     "/api/v1/auth/sessions/{sessionId}": {
       "delete": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Delete a specific session",
         "security": [
           {
@@ -1799,63 +1617,9 @@
         }
       }
     },
-    "/auth/github": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Start GitHub OAuth flow",
-        "responses": {
-          "302": {
-            "description": "Redirect to GitHub"
-          }
-        }
-      }
-    },
-    "/auth/github/callback": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "GitHub OAuth callback",
-        "responses": {
-          "200": {
-            "description": "OAuth callback handled"
-          }
-        }
-      }
-    },
-    "/auth/google": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Start Google OAuth flow",
-        "responses": {
-          "302": {
-            "description": "Redirect to Google"
-          }
-        }
-      }
-    },
-    "/auth/google/callback": {
-      "get": {
-        "tags": [
-          "OAuth"
-        ],
-        "summary": "Google OAuth callback",
-        "responses": {
-          "200": {
-            "description": "OAuth callback handled"
-          }
-        }
-      }
-    },
     "/api/v1/auth/sessions": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "List all active sessions for the signed-in user",
         "security": [
           {
@@ -1879,9 +1643,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Delete all sessions for the signed-in user",
         "security": [
           {
@@ -1907,9 +1669,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Logout and revoke the current session",
         "security": [
           {
@@ -1928,9 +1688,7 @@
     },
     "/api/v1/auth/account/reactivate": {
       "put": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Reactivate a previously deleted account",
         "security": [
           {
@@ -1956,9 +1714,7 @@
     },
     "/api/v1/organizations/{organizationId}/admins": {
       "get": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "List all admins in an organization",
         "security": [
           {
@@ -1999,9 +1755,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "Add a new admin to an organization",
         "security": [
           {
@@ -2051,9 +1805,7 @@
     },
     "/api/v1/admins/{adminId}/approve": {
       "post": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "Approve a pending admin (must be approved by a different admin)",
         "security": [
           {
@@ -2086,9 +1838,7 @@
     },
     "/api/v1/organizations/{organizationId}/practitioners": {
       "get": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "List all practitioners in an organization",
         "security": [
           {
@@ -2129,9 +1879,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "Add a new practitioner to an organization",
         "security": [
           {
@@ -2181,9 +1929,7 @@
     },
     "/api/v1/practitioners/{practitionerId}/approve": {
       "post": {
-        "tags": [
-          "Organization"
-        ],
+        "tags": ["Organization"],
         "summary": "Approve a pending practitioner",
         "security": [
           {
@@ -2216,9 +1962,7 @@
     },
     "/api/v1/patients/me": {
       "get": {
-        "tags": [
-          "Patients"
-        ],
+        "tags": ["Patients"],
         "summary": "Get the logged-in patient's own profile",
         "security": [
           {
@@ -2253,9 +1997,7 @@
     },
     "/api/v1/patients/{patientId}": {
       "get": {
-        "tags": [
-          "Patients"
-        ],
+        "tags": ["Patients"],
         "summary": "Get a patient's demographics (requires active access grant)",
         "security": [
           {
@@ -2303,9 +2045,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Patients"
-        ],
+        "tags": ["Patients"],
         "summary": "Update a patient's demographics (self, or practitioner with access)",
         "security": [
           {
@@ -2366,9 +2106,7 @@
     },
     "/api/v1/patients/{patientId}/organization-access": {
       "get": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "List organizations with access to this patient's record",
         "security": [
           {
@@ -2409,9 +2147,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "Patient grants an organization access to their record",
         "security": [
           {
@@ -2429,9 +2165,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "organization_id"
-                ],
+                "required": ["organization_id"],
                 "properties": {
                   "organization_id": {
                     "type": "string",
@@ -2470,9 +2204,7 @@
     },
     "/api/v1/patients/{patientId}/organization-access/{accessId}/revoke": {
       "post": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "Patient revokes an organization's access to their record",
         "security": [
           {
@@ -2521,9 +2253,7 @@
     },
     "/api/v1/patients/{patientId}/practitioner-access": {
       "get": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "List practitioners with access to this patient (admin only)",
         "security": [
           {
@@ -2564,9 +2294,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "Admin grants a practitioner access to a patient's record",
         "security": [
           {
@@ -2584,9 +2312,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "practitioner_id"
-                ],
+                "required": ["practitioner_id"],
                 "properties": {
                   "practitioner_id": {
                     "type": "string",
@@ -2625,9 +2351,7 @@
     },
     "/api/v1/patients/{patientId}/practitioner-access/{accessId}/revoke": {
       "post": {
-        "tags": [
-          "Access Control"
-        ],
+        "tags": ["Access Control"],
         "summary": "Admin revokes a practitioner's access to a patient's record",
         "security": [
           {
@@ -2676,9 +2400,7 @@
     },
     "/api/v1/patients/{patientId}/episodes": {
       "get": {
-        "tags": [
-          "Episodes"
-        ],
+        "tags": ["Episodes"],
         "summary": "List a patient's care episodes",
         "security": [
           {
@@ -2719,9 +2441,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Episodes"
-        ],
+        "tags": ["Episodes"],
         "summary": "Open a new care episode for a patient (practitioner only)",
         "security": [
           {
@@ -2739,9 +2459,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "label"
-                ],
+                "required": ["label"],
                 "properties": {
                   "label": {
                     "type": "string"
@@ -2779,9 +2497,7 @@
     },
     "/api/v1/episodes/{episodeId}/close": {
       "post": {
-        "tags": [
-          "Episodes"
-        ],
+        "tags": ["Episodes"],
         "summary": "Close an open care episode (practitioner only)",
         "security": [
           {
@@ -2827,9 +2543,7 @@
     },
     "/api/v1/patients/{patientId}/summaries": {
       "get": {
-        "tags": [
-          "Patient Summaries"
-        ],
+        "tags": ["Patient Summaries"],
         "summary": "List a patient's summaries (medical history, medications, allergies, etc.)",
         "security": [
           {
@@ -2889,9 +2603,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Patient Summaries"
-        ],
+        "tags": ["Patient Summaries"],
         "summary": "Create a patient summary (practitioner only)",
         "security": [
           {
@@ -2909,10 +2621,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "category",
-                  "data"
-                ],
+                "required": ["category", "data"],
                 "properties": {
                   "category": {
                     "type": "string",
@@ -2978,9 +2687,7 @@
     },
     "/api/v1/summaries/{summaryId}": {
       "patch": {
-        "tags": [
-          "Patient Summaries"
-        ],
+        "tags": ["Patient Summaries"],
         "summary": "Update a summary in place (practitioner only); old version saved automatically",
         "security": [
           {
@@ -3041,9 +2748,7 @@
     },
     "/api/v1/summaries/{summaryId}/versions": {
       "get": {
-        "tags": [
-          "Patient Summaries"
-        ],
+        "tags": ["Patient Summaries"],
         "summary": "Get version history of a patient summary",
         "security": [
           {
@@ -3108,9 +2813,7 @@
     },
     "/api/v1/patients/{patientId}/clinical-entries": {
       "get": {
-        "tags": [
-          "Clinical Entries"
-        ],
+        "tags": ["Clinical Entries"],
         "summary": "List a patient's clinical entries (vitals, notes, labs, radiology, etc.)",
         "security": [
           {
@@ -3178,9 +2881,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Clinical Entries"
-        ],
+        "tags": ["Clinical Entries"],
         "summary": "Record a new clinical entry (practitioner only)",
         "security": [
           {
@@ -3198,11 +2899,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "event_type",
-                  "data",
-                  "occurred_at"
-                ],
+                "required": ["event_type", "data", "occurred_at"],
                 "properties": {
                   "event_type": {
                     "type": "string",
@@ -3261,9 +2958,7 @@
     },
     "/api/v1/clinical-entries/{entryId}": {
       "get": {
-        "tags": [
-          "Clinical Entries"
-        ],
+        "tags": ["Clinical Entries"],
         "summary": "Get a single clinical entry by ID",
         "security": [
           {
@@ -3309,9 +3004,7 @@
     },
     "/api/v1/patients/{patientId}/appointments": {
       "get": {
-        "tags": [
-          "Appointments"
-        ],
+        "tags": ["Appointments"],
         "summary": "List appointments for a patient",
         "security": [
           {
@@ -3328,12 +3021,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "scheduled",
-                "checked_in",
-                "completed",
-                "cancelled"
-              ]
+              "enum": ["scheduled", "checked_in", "completed", "cancelled"]
             }
           }
         ],
@@ -3366,9 +3054,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Appointments"
-        ],
+        "tags": ["Appointments"],
         "summary": "Schedule a new appointment for a patient",
         "security": [
           {
@@ -3386,10 +3072,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "practitioner_id",
-                  "scheduled_at"
-                ],
+                "required": ["practitioner_id", "scheduled_at"],
                 "properties": {
                   "practitioner_id": {
                     "type": "string",
@@ -3432,9 +3115,7 @@
     },
     "/api/v1/appointments/{appointmentId}": {
       "get": {
-        "tags": [
-          "Appointments"
-        ],
+        "tags": ["Appointments"],
         "summary": "Get a single appointment by ID",
         "security": [
           {
@@ -3478,9 +3159,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Appointments"
-        ],
+        "tags": ["Appointments"],
         "summary": "Update an appointment (reschedule or cancel)",
         "security": [
           {
@@ -3511,10 +3190,7 @@
                   },
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "scheduled",
-                      "cancelled"
-                    ]
+                    "enum": ["scheduled", "cancelled"]
                   }
                 }
               }
@@ -3549,9 +3225,7 @@
     },
     "/api/v1/appointments/{appointmentId}/check-in": {
       "post": {
-        "tags": [
-          "Appointments"
-        ],
+        "tags": ["Appointments"],
         "summary": "Check in a patient for their appointment",
         "security": [
           {
@@ -3597,9 +3271,7 @@
     },
     "/api/v1/patients/{patientId}/invoices": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "List invoices for a patient",
         "security": [
           {
@@ -3616,11 +3288,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "pending",
-                "paid",
-                "overdue"
-              ]
+              "enum": ["pending", "paid", "overdue"]
             }
           }
         ],
@@ -3653,9 +3321,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Create an invoice for a patient (admin only)",
         "security": [
           {
@@ -3673,9 +3339,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "amount"
-                ],
+                "required": ["amount"],
                 "properties": {
                   "appointment_id": {
                     "type": "string",
@@ -3726,9 +3390,7 @@
     },
     "/api/v1/invoices/{invoiceId}": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Get a single invoice by ID",
         "security": [
           {
@@ -3772,9 +3434,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Update an invoice (admin only)",
         "security": [
           {
@@ -3804,11 +3464,7 @@
                   },
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "pending",
-                      "paid",
-                      "overdue"
-                    ]
+                    "enum": ["pending", "paid", "overdue"]
                   },
                   "insurance_provider": {
                     "type": "string"
@@ -3852,9 +3508,7 @@
     },
     "/api/v1/invoices/{invoiceId}/payments": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "List payments recorded against an invoice",
         "security": [
           {
@@ -3901,9 +3555,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Record a payment against an invoice (admin only)",
         "security": [
           {
@@ -3927,23 +3579,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "amount",
-                  "method",
-                  "paid_at"
-                ],
+                "required": ["amount", "method", "paid_at"],
                 "properties": {
                   "amount": {
                     "type": "number"
                   },
                   "method": {
                     "type": "string",
-                    "enum": [
-                      "cash",
-                      "card",
-                      "transfer",
-                      "insurance"
-                    ]
+                    "enum": ["cash", "card", "transfer", "insurance"]
                   },
                   "paid_at": {
                     "type": "string",
@@ -3982,9 +3625,7 @@
     },
     "/api/v1/patients/{patientId}/consent-forms": {
       "get": {
-        "tags": [
-          "Consent Forms"
-        ],
+        "tags": ["Consent Forms"],
         "summary": "List consent forms for a patient",
         "security": [
           {
@@ -4025,9 +3666,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Consent Forms"
-        ],
+        "tags": ["Consent Forms"],
         "summary": "Create a consent form for a patient procedure (practitioner only)",
         "security": [
           {
@@ -4045,10 +3684,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "procedure_name",
-                  "document"
-                ],
+                "required": ["procedure_name", "document"],
                 "properties": {
                   "procedure_name": {
                     "type": "string"
@@ -4100,9 +3736,7 @@
     },
     "/api/v1/consent-forms/{consentFormId}": {
       "get": {
-        "tags": [
-          "Consent Forms"
-        ],
+        "tags": ["Consent Forms"],
         "summary": "Get a single consent form by ID",
         "security": [
           {
@@ -4148,9 +3782,7 @@
     },
     "/api/v1/audit-logs": {
       "get": {
-        "tags": [
-          "Audit Logs"
-        ],
+        "tags": ["Audit Logs"],
         "summary": "List audit logs (platform admin only)",
         "security": [
           {
