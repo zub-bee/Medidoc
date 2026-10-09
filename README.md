@@ -370,7 +370,3 @@ This project enforces consistent code style and commit conventions through:
 2. Follow the [Conventional Commits](https://www.conventionalcommits.org/) spec for all commit messages
 3. Ensure `npm run typecheck` and `npm run lint:check` pass before opening a PR
 4. Open a pull request with a clear description of the change and its motivation
-
----
-
-> Built as part of the Rise Academy program.
